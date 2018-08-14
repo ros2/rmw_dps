@@ -21,5 +21,6 @@ set_and_check(@PROJECT_NAME@_LIB_DIR "@PACKAGE_LIB_INSTALL_DIR@")
 
 if(NOT TARGET dps_shared)
   add_library(dps_shared SHARED IMPORTED)
-  set_property(TARGET dps_shared PROPERTY IMPORTED_LOCATION "@PACKAGE_LIB_INSTALL_DIR@/libdps_shared.so")
+  set_property(TARGET dps_shared PROPERTY IMPORTED_LOCATION "@PACKAGE_LIB_INSTALL_DIR@/libdps_shared")
+  set_property(TARGET dps_shared PROPERTY IMPORTED_IMPLIB "@PACKAGE_LIB_INSTALL_DIR@/dps_shared.lib")
 endif()
