@@ -14,7 +14,14 @@
 
 #include "rcutils/logging_macros.h"
 
+#ifdef WIN32
+extern "C"
+{
+ __declspec(dllimport) int DPS_Debug;
+}
+#else
 #include <dps/dbg.h>
+#endif
 
 #include "rmw/rmw.h"
 

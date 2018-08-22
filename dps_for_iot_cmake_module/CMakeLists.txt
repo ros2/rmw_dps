@@ -18,6 +18,7 @@ project(dps_for_iot_cmake_module)
 set(PROJECT_VERSION 0.9.0)
 set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/ CACHE PATH "Installation directory for C++ headers")
 set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/ CACHE PATH "Installation directory for libraries")
+set(BIN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/bin/ CACHE PATH "Installation directory for binaries")
 
 find_package(ament_cmake REQUIRED)
 
@@ -40,22 +41,37 @@ ExternalProject_Add(dps_for_iot
   PREFIX dps_for_iot
   URL https://github.com/intel/dps-for-iot/archive/master.zip
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none
+  BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/rmw_dps_shared.def
   BUILD_ALWAYS TRUE
   INSTALL_COMMAND ""
   )
 
 ExternalProject_Get_Property(dps_for_iot SOURCE_DIR)
 
-install(DIRECTORY ${SOURCE_DIR}/build/dist/lib/
-  DESTINATION ${LIB_INSTALL_DIR}
-  USE_SOURCE_PERMISSIONS
-  COMPONENT libraries
-  )
 install(DIRECTORY ${SOURCE_DIR}/build/dist/inc/
   DESTINATION ${INCLUDE_INSTALL_DIR}
   COMPONENT headers
   )
+
+if(MSVC)
+  install(FILES
+          ${SOURCE_DIR}/build/dist/lib/dps_shared.lib
+          ${SOURCE_DIR}/build/dist/lib/dps_shared.exp
+    DESTINATION ${LIB_INSTALL_DIR}
+    COMPONENT libraries
+    )
+  install(FILES
+          ${SOURCE_DIR}/build/dist/lib/dps_shared.dll
+    DESTINATION ${BIN_INSTALL_DIR}
+    COMPONENT libraries
+    )
+else()
+  install(DIRECTORY ${SOURCE_DIR}/build/dist/lib/
+    DESTINATION ${LIB_INSTALL_DIR}
+    USE_SOURCE_PERMISSIONS
+    COMPONENT libraries
+    )
+endif()
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/dps_for_iot-config.cmake.in
