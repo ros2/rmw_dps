@@ -21,7 +21,8 @@ extern "C"
 rmw_ret_t
 rmw_get_node_names(
   const rmw_node_t * node,
-  rcutils_string_array_t * node_names)
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
@@ -30,6 +31,7 @@ rmw_get_node_names(
   // TODO
   (void)node;
   (void)node_names;
+  (void)node_namespaces;
 
   return RMW_RET_OK;
 }
