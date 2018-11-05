@@ -20,43 +20,43 @@
 
 #include "rmw_dps_cpp/macros.hpp"
 
-#include "rosidl_generator_c/primitives_array_functions.h"
+#include "rosidl_generator_c/primitives_sequence_functions.h"
 
 namespace rmw_dps_cpp
 {
 
 template<typename T>
-struct GenericCArray;
+struct GenericCSequence;
 
 // multiple definitions of ambiguous primitive types
-SPECIALIZE_GENERIC_C_ARRAY(bool, bool)
-SPECIALIZE_GENERIC_C_ARRAY(byte, uint8_t)
-SPECIALIZE_GENERIC_C_ARRAY(char, char)
-SPECIALIZE_GENERIC_C_ARRAY(float32, float)
-SPECIALIZE_GENERIC_C_ARRAY(float64, double)
-SPECIALIZE_GENERIC_C_ARRAY(int8, int8_t)
-SPECIALIZE_GENERIC_C_ARRAY(int16, int16_t)
-SPECIALIZE_GENERIC_C_ARRAY(uint16, uint16_t)
-SPECIALIZE_GENERIC_C_ARRAY(int32, int32_t)
-SPECIALIZE_GENERIC_C_ARRAY(uint32, uint32_t)
-SPECIALIZE_GENERIC_C_ARRAY(int64, int64_t)
-SPECIALIZE_GENERIC_C_ARRAY(uint64, uint64_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(bool, bool)
+SPECIALIZE_GENERIC_C_SEQUENCE(byte, uint8_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(char, char)
+SPECIALIZE_GENERIC_C_SEQUENCE(float32, float)
+SPECIALIZE_GENERIC_C_SEQUENCE(float64, double)
+SPECIALIZE_GENERIC_C_SEQUENCE(int8, int8_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(int16, int16_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(uint16, uint16_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(int32, int32_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(uint32, uint32_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(int64, int64_t)
+SPECIALIZE_GENERIC_C_SEQUENCE(uint64, uint64_t)
 
-typedef struct rosidl_generator_c__void__Array
+typedef struct rosidl_generator_c__void__Sequence
 {
   void * data;
   /// The number of valid items in data
   size_t size;
   /// The number of allocated items in data
   size_t capacity;
-} rosidl_generator_c__void__Array;
+} rosidl_generator_c__void__Sequence;
 
 inline
 bool
-rosidl_generator_c__void__Array__init(
-  rosidl_generator_c__void__Array * array, size_t size, size_t member_size)
+rosidl_generator_c__void__Sequence__init(
+  rosidl_generator_c__void__Sequence * sequence, size_t size, size_t member_size)
 {
-  if (!array) {
+  if (!sequence) {
     return false;
   }
   void * data = nullptr;
@@ -66,31 +66,31 @@ rosidl_generator_c__void__Array__init(
       return false;
     }
   }
-  array->data = data;
-  array->size = size;
-  array->capacity = size;
+  sequence->data = data;
+  sequence->size = size;
+  sequence->capacity = size;
   return true;
 }
 
 inline
 void
-rosidl_generator_c__void__Array__fini(rosidl_generator_c__void__Array * array)
+rosidl_generator_c__void__Sequence__fini(rosidl_generator_c__void__Sequence * sequence)
 {
-  if (!array) {
+  if (!sequence) {
     return;
   }
-  if (array->data) {
+  if (sequence->data) {
     // ensure that data and capacity values are consistent
-    assert(array->capacity > 0);
-    // finalize all array elements
-    free(array->data);
-    array->data = nullptr;
-    array->size = 0;
-    array->capacity = 0;
+    assert(sequence->capacity > 0);
+    // finalize all sequence elements
+    free(sequence->data);
+    sequence->data = nullptr;
+    sequence->size = 0;
+    sequence->capacity = 0;
   } else {
     // ensure that data, size, and capacity values are consistent
-    assert(0 == array->size);
-    assert(0 == array->capacity);
+    assert(0 == sequence->size);
+    assert(0 == sequence->capacity);
   }
 }
 
@@ -111,7 +111,7 @@ void serialize_field(
   if (!member->is_array_) {
     ser << *static_cast<T *>(field);
   } else if (member->array_size_ && !member->is_upper_bound_) {
-    ser.serializeArray(static_cast<T *>(field), member->array_size_);
+    ser.serializeSequence(static_cast<T *>(field), member->array_size_);
   } else {
     std::vector<T> & data = *reinterpret_cast<std::vector<T> *>(field);
     ser << data;
@@ -128,10 +128,10 @@ void serialize_field(
   if (!member->is_array_) {
     ser << *static_cast<T *>(field);
   } else if (member->array_size_ && !member->is_upper_bound_) {
-    ser.serializeArray(static_cast<T *>(field), member->array_size_);
+    ser.serializeSequence(static_cast<T *>(field), member->array_size_);
   } else {
-    auto & data = *reinterpret_cast<typename GenericCArray<T>::type *>(field);
-    ser.serializeArray(reinterpret_cast<T *>(data.data), data.size);
+    auto & data = *reinterpret_cast<typename GenericCSequence<T>::type *>(field);
+    ser.serializeSequence(reinterpret_cast<T *>(data.data), data.size);
   }
 }
 
@@ -161,10 +161,10 @@ void serialize_field<std::string>(
           CStringHelper::convert_to_std_string(string_field[i]));
       }
     } else {
-      auto & string_array_field = *reinterpret_cast<rosidl_generator_c__String__Array *>(field);
-      for (size_t i = 0; i < string_array_field.size; ++i) {
+      auto & string_sequence_field = *reinterpret_cast<rosidl_generator_c__String__Sequence *>(field);
+      for (size_t i = 0; i < string_sequence_field.size; ++i) {
         cpp_string_vector.push_back(
-          CStringHelper::convert_to_std_string(string_array_field.data[i]));
+          CStringHelper::convert_to_std_string(string_sequence_field.data[i]));
       }
     }
     ser << cpp_string_vector;
@@ -172,7 +172,7 @@ void serialize_field<std::string>(
 }
 
 inline
-size_t get_submessage_array_serialize(
+size_t get_submessage_sequence_serialize(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
   cbor::TxStream & ser,
   void * & field,
@@ -185,7 +185,7 @@ size_t get_submessage_array_serialize(
       subros_message = field;
       size_t array_size = member->size_function(field);
       if (member->is_upper_bound_ && array_size > member->array_size_) {
-          throw std::runtime_error("array overcomes the maximum length");
+          throw std::runtime_error("sequence overcomes the maximum length");
       }
       // Serialize length
       ser << (uint32_t)array_size;
@@ -194,7 +194,7 @@ size_t get_submessage_array_serialize(
 }
 
 inline
-size_t get_submessage_array_serialize(
+size_t get_submessage_sequence_serialize(
   const rosidl_typesupport_introspection_c__MessageMember * member,
   cbor::TxStream & ser,
   void * & field,
@@ -207,7 +207,7 @@ size_t get_submessage_array_serialize(
       subros_message = field;
       size_t array_size = member->size_function(field);
       if (member->is_upper_bound_ && array_size > member->array_size_) {
-          throw std::runtime_error("array overcomes the maximum length");
+          throw std::runtime_error("sequence overcomes the maximum length");
       }
       // Serialize length
       ser << (uint32_t)array_size;
@@ -222,7 +222,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
   assert(ros_message);
   assert(members);
 
-  ser.serializeArray(members->member_count_);
+  ser.serializeSequence(members->member_count_);
 
   for (uint32_t i = 0; i < members->member_count_; ++i) {
     const auto member = members->members_ + i;
@@ -281,7 +281,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
             void * subros_message = nullptr;
             size_t array_size = 0;
 
-            array_size = get_submessage_array_serialize(
+            array_size = get_submessage_sequence_serialize(
               member, ser, field, subros_message);
 
             for (size_t index = 0; index < array_size; ++index) {
@@ -308,7 +308,7 @@ void deserialize_field(
   if (!member->is_array_) {
     deser >> *static_cast<T *>(field);
   } else if (member->array_size_ && !member->is_upper_bound_) {
-    deser.deserializeArray(static_cast<T *>(field), member->array_size_);
+    deser.deserializeSequence(static_cast<T *>(field), member->array_size_);
   } else {
     auto & vector = *reinterpret_cast<std::vector<T> *>(field);
     new(&vector) std::vector<T>;
@@ -326,15 +326,15 @@ void deserialize_field(
   if (!member->is_array_) {
     deser >> *static_cast<T *>(field);
   } else if (member->array_size_ && !member->is_upper_bound_) {
-    deser.deserializeArray(static_cast<T *>(field), member->array_size_);
+    deser.deserializeSequence(static_cast<T *>(field), member->array_size_);
   } else {
-    auto & data = *reinterpret_cast<typename GenericCArray<T>::type *>(field);
+    auto & data = *reinterpret_cast<typename GenericCSequence<T>::type *>(field);
     size_t dsize = 0;
-    deser.deserializeArraySize(&dsize);
-    if (!GenericCArray<T>::init(&data, dsize)) {
-      throw std::runtime_error("unable to initialize GenericCArray");
+    deser.deserializeSequenceSize(&dsize);
+    if (!GenericCSequence<T>::init(&data, dsize)) {
+      throw std::runtime_error("unable to initialize GenericCSequence");
     }
-    deser.deserializeArray(reinterpret_cast<T *>(data.data), dsize);
+    deser.deserializeSequence(reinterpret_cast<T *>(data.data), dsize);
   }
 }
 
@@ -363,12 +363,12 @@ void deserialize_field<std::string>(
         }
       }
     } else {
-      auto & string_array_field = *reinterpret_cast<rosidl_generator_c__String__Array *>(field);
-      if (!rosidl_generator_c__String__Array__init(&string_array_field, cpp_string_vector.size())) {
-        throw std::runtime_error("unable to initialize rosidl_generator_c__String array");
+      auto & string_sequence_field = *reinterpret_cast<rosidl_generator_c__String__Sequence *>(field);
+      if (!rosidl_generator_c__String__Sequence__init(&string_sequence_field, cpp_string_vector.size())) {
+        throw std::runtime_error("unable to initialize rosidl_generator_c__String sequence");
       }
       for (size_t i = 0; i < cpp_string_vector.size(); ++i) {
-        if (!rosidl_generator_c__String__assign(&string_array_field.data[i],
+        if (!rosidl_generator_c__String__assign(&string_sequence_field.data[i],
           cpp_string_vector[i].c_str()))
         {
           throw std::runtime_error("unable to assign rosidl_generator_c__String");
@@ -379,7 +379,7 @@ void deserialize_field<std::string>(
 }
 
 inline
-size_t get_submessage_array_deserialize(
+size_t get_submessage_sequence_deserialize(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
   cbor::RxStream & deser,
   void * & field,
@@ -403,7 +403,7 @@ size_t get_submessage_array_deserialize(
 }
 
 inline
-size_t get_submessage_array_deserialize(
+size_t get_submessage_sequence_deserialize(
   const rosidl_typesupport_introspection_c__MessageMember * member,
   cbor::RxStream & deser,
   void * & field,
@@ -432,7 +432,7 @@ bool TypeSupport<MembersType>::deserializeROSmessage(
   assert(ros_message);
 
   size_t member_count = 0;
-  deser.deserializeArray(&member_count);
+  deser.deserializeSequence(&member_count);
   if (member_count != members->member_count_) {
     throw std::runtime_error("failed to deserialize value");
   }
@@ -489,7 +489,7 @@ bool TypeSupport<MembersType>::deserializeROSmessage(
             size_t array_size = 0;
             bool recall_new = call_new;
 
-            array_size = get_submessage_array_deserialize(
+            array_size = get_submessage_sequence_deserialize(
               member, deser, field, subros_message, recall_new);
 
             for (size_t index = 0; index < array_size; ++index) {

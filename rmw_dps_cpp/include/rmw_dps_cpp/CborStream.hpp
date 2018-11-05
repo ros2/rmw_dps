@@ -149,7 +149,7 @@ public:
   template<typename T>
   inline TxStream & operator<<(const std::vector<T> v)
   {
-    return encodeArray(v.data(), v.size());
+    return encodeSequence(v.data(), v.size());
   }
 
   inline TxStream & operator<<(const std::vector<bool> v)
@@ -165,12 +165,12 @@ public:
   }
 
   template<typename T>
-  inline TxStream & serializeArray(const T * items, size_t size)
+  inline TxStream & serializeSequence(const T * items, size_t size)
   {
-    return encodeArray(items, size);
+    return encodeSequence(items, size);
   }
 
-  inline TxStream & serializeArray(size_t size)
+  inline TxStream & serializeSequence(size_t size)
   {
     size_ += CBOR_SIZEOF_ARRAY(size);
     if (ret_ == DPS_OK) {
@@ -194,7 +194,7 @@ private:
   DPS_TxBuffer buffer_;
 
   template<typename T>
-  inline TxStream & encodeArray(const T * items, size_t size)
+  inline TxStream & encodeSequence(const T * items, size_t size)
   {
     size_ += CBOR_SIZEOF_ARRAY(size);
     if (ret_ == DPS_OK) {
@@ -206,7 +206,7 @@ private:
     return *this;
   }
 
-  inline TxStream & encodeArray(const uint8_t * items, size_t size)
+  inline TxStream & encodeSequence(const uint8_t * items, size_t size)
   {
     size_ += CBOR_SIZEOF_BYTES(size);
     if (ret_ == DPS_OK) {
@@ -425,12 +425,12 @@ public:
   }
 
   template<typename T>
-  inline RxStream & deserializeArray(T * items, size_t size)
+  inline RxStream & deserializeSequence(T * items, size_t size)
   {
-    return decodeArray(items, size);
+    return decodeSequence(items, size);
   }
 
-  inline RxStream & deserializeArray(size_t * size)
+  inline RxStream & deserializeSequence(size_t * size)
   {
     DPS_Status ret = CBOR_DecodeArray(&buffer_, size);
     if (ret != DPS_OK) {
@@ -439,7 +439,7 @@ public:
     return *this;
   }
 
-  inline RxStream & deserializeArraySize(size_t * size)
+  inline RxStream & deserializeSequenceSize(size_t * size)
   {
     uint8_t maj;
     DPS_Status ret = CBOR_Peek(&buffer_, &maj, size);
@@ -476,7 +476,7 @@ private:
   }
 
   template<typename T>
-  inline RxStream & decodeArray(T * items, size_t size)
+  inline RxStream & decodeSequence(T * items, size_t size)
   {
     size_t size_;
     DPS_Status ret = CBOR_DecodeArray(&buffer_, &size_);
@@ -489,7 +489,7 @@ private:
     return *this;
   }
 
-  inline RxStream & decodeArray(uint8_t * items, size_t size)
+  inline RxStream & decodeSequence(uint8_t * items, size_t size)
   {
     uint8_t * items_;
     size_t size_;
