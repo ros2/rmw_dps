@@ -30,7 +30,7 @@ rmw_service_server_is_available(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,client=%p,is_available=%p)", __FUNCTION__, node, client, is_available)
+    "%s(node=%p,client=%p,is_available=%p)", __FUNCTION__, node, client, is_available);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

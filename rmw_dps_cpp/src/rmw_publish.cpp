@@ -33,7 +33,7 @@ rmw_publish(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(publisher=%p,ros_message=%p)", __FUNCTION__, publisher, ros_message)
+    "%s(publisher=%p,ros_message=%p)", __FUNCTION__, publisher, ros_message);
 
   assert(publisher);
   assert(ros_message);

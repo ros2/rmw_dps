@@ -25,7 +25,7 @@ rmw_get_node_names(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    __FUNCTION__)
+    __FUNCTION__);
 
   // TODO
   (void)node;

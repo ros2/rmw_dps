@@ -25,7 +25,7 @@ rmw_get_implementation_identifier()
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    __FUNCTION__)
+    __FUNCTION__);
 
   return intel_dps_identifier;
 }

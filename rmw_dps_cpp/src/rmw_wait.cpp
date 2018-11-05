@@ -87,7 +87,7 @@ rmw_wait(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscriptions=%p,guard_conditions=%p,services=%p,clients=%p,wait_set=%p,wait_timeout=%p)", __FUNCTION__, subscriptions, guard_conditions, services, clients, wait_set, wait_timeout)
+    "%s(subscriptions=%p,guard_conditions=%p,services=%p,clients=%p,wait_set=%p,wait_timeout=%p)", __FUNCTION__, subscriptions, guard_conditions, services, clients, wait_set, wait_timeout);
 
   if (!wait_set) {
     RMW_SET_ERROR_MSG("wait set handle is null");

@@ -35,7 +35,7 @@ rmw_send_request(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(client=%p,ros_request=%p,sequence_id=%p)", __FUNCTION__, client, ros_request, sequence_id)
+    "%s(client=%p,ros_request=%p,sequence_id=%p)", __FUNCTION__, client, ros_request, sequence_id);
 
   assert(client);
   assert(ros_request);
@@ -77,7 +77,7 @@ rmw_take_request(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(service=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, service, request_header, ros_request, taken)
+    "%s(service=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, service, request_header, ros_request, taken);
 
   assert(service);
   assert(request_header);

@@ -35,7 +35,7 @@ rmw_create_service(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,service_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})", __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability)
+    "%s(node=%p,type_supports=%p,service_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})", __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -173,7 +173,7 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,service=%p)", __FUNCTION__, node, service)
+    "%s(node=%p,service=%p)", __FUNCTION__, node, service);
 
 
   if (!node) {
