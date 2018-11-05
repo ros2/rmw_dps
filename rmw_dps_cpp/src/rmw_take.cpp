@@ -79,13 +79,12 @@ rmw_take(const rmw_subscription_t * subscription, void * ros_message, bool * tak
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p)", __FUNCTION__, subscription, ros_message, taken);
 
-  auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    ros_message, "ros_message pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR, error_msg_allocator);
+    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
   return _take(subscription, ros_message, taken, nullptr);
 }
@@ -101,15 +100,14 @@ rmw_take_with_info(
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, ros_message, taken, message_info);
 
-  auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    ros_message, "ros_message pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR, error_msg_allocator);
+    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    message_info, "message info pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take(subscription, ros_message, taken, message_info);
 }
@@ -164,13 +162,12 @@ rmw_take_serialized_message(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription, serialized_message, taken);
 
-  auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    serialized_message, "ros_message pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    serialized_message, "ros_message pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR, error_msg_allocator);
+    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
   return _take_serialized_message(subscription, serialized_message, taken, nullptr);
 }
@@ -186,15 +183,14 @@ rmw_take_serialized_message_with_info(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, serialized_message, taken, message_info);
 
-  auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    serialized_message, "ros_message pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    serialized_message, "ros_message pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    taken, "boolean flag for taken is null", return RMW_RET_ERROR, error_msg_allocator);
+    taken, "boolean flag for taken is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    message_info, "message info pointer is null", return RMW_RET_ERROR, error_msg_allocator);
+    message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take_serialized_message(subscription, serialized_message, taken, message_info);
 }
