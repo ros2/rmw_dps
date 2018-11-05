@@ -177,7 +177,7 @@ rmw_create_publisher(
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_dps_cpp",
         "failed to trigger graph guard condition: %s",
-        rmw_get_error_string_safe())
+        rmw_get_error_string().str);
     }
   }
 
