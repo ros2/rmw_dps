@@ -77,7 +77,7 @@ rmw_take(const rmw_subscription_t * subscription, void * ros_message, bool * tak
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,ros_message=%p,taken=%p)", __FUNCTION__, subscription, ros_message, taken)
+    "%s(subscription=%p,ros_message=%p,taken=%p)", __FUNCTION__, subscription, ros_message, taken);
 
   auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
@@ -99,7 +99,7 @@ rmw_take_with_info(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, ros_message, taken, message_info)
+    "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, ros_message, taken, message_info);
 
   auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
@@ -162,7 +162,7 @@ rmw_take_serialized_message(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription, serialized_message, taken)
+    "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription, serialized_message, taken);
 
   auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
@@ -184,7 +184,7 @@ rmw_take_serialized_message_with_info(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, serialized_message, taken, message_info)
+    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, serialized_message, taken, message_info);
 
   auto error_msg_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(

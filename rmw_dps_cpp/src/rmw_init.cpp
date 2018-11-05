@@ -36,7 +36,7 @@ rmw_init()
 
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s()", __FUNCTION__)
+    "%s()", __FUNCTION__);
 
   return RMW_RET_OK;
 }

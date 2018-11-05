@@ -29,7 +29,7 @@ rmw_create_wait_set(size_t max_conditions)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(max_conditions=%d)", __FUNCTION__, max_conditions)
+    "%s(max_conditions=%d)", __FUNCTION__, max_conditions);
 
   (void)max_conditions;
   rmw_wait_set_t * wait_set = rmw_wait_set_allocate();
@@ -69,7 +69,7 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(wait_set=%p)", __FUNCTION__, wait_set)
+    "%s(wait_set=%p)", __FUNCTION__, wait_set);
 
   if (!wait_set) {
     RMW_SET_ERROR_MSG("wait set handle is null");
