@@ -121,8 +121,11 @@ rmw_create_publisher(
   }
 
   CustomPublisherInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &topic_name[1];
+  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
+  const char * topics[2] = {
+    domain_topic.c_str(),
+    &topic_name[1] // Topic string cannot start with a separator (/)
+  };
   rmw_publisher_t * rmw_publisher = nullptr;
   DPS_Status ret;
 
@@ -142,7 +145,7 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("failed to create publication");
     goto fail;
   }
-  ret = DPS_InitPublication(info->publication_, &topic, 1, DPS_FALSE, nullptr, nullptr);
+  ret = DPS_InitPublication(info->publication_, topics, 2, DPS_FALSE, nullptr, nullptr);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize publication");
     goto fail;

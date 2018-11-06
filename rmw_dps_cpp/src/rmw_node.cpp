@@ -53,7 +53,8 @@ destroy_node(DPS_Node * node)
 rmw_node_t *
 create_node(
   const char * name,
-  const char * namespace_)
+  const char * namespace_,
+  size_t domain_id)
 {
   if (!name) {
     RMW_SET_ERROR_MSG("name is null");
@@ -90,6 +91,7 @@ create_node(
     goto fail;
   }
   node_handle->implementation_identifier = intel_dps_identifier;
+  node_impl->domain_id = domain_id;
   node_impl->graph_guard_condition_ = graph_guard_condition;
   node_handle->data = node_impl;
 
@@ -171,7 +173,7 @@ rmw_create_node(
     return nullptr;
   }
 
-  return create_node(name, namespace_);
+  return create_node(name, namespace_, domain_id);
 }
 
 rmw_ret_t

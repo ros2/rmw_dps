@@ -21,6 +21,7 @@
 
 typedef struct CustomNodeInfo
 {
+  size_t domain_id;
   DPS_Node * node_;
   rmw_guard_condition_t * graph_guard_condition_;
 } CustomNodeInfo;

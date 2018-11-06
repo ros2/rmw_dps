@@ -75,8 +75,11 @@ rmw_create_service(
   }
 
   CustomServiceInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &service_name[1];
+  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
+  const char * topics[2] = {
+    domain_topic.c_str(),
+    &service_name[1] // Topic string cannot start with a separator (/)
+  };
   rmw_service_t * rmw_service = nullptr;
   DPS_Status ret;
 
@@ -110,7 +113,7 @@ rmw_create_service(
   }
 
   info->request_listener_ = new Listener;
-  info->request_subscription_ = DPS_CreateSubscription(impl->node_, &topic, 1);
+  info->request_subscription_ = DPS_CreateSubscription(impl->node_, topics, 2);
   if (!info->request_subscription_) {
     RMW_SET_ERROR_MSG("failed to create subscription");
     goto fail;

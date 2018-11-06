@@ -79,8 +79,11 @@ rmw_create_client(
   }
 
   CustomClientInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &service_name[1];
+  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
+  const char * topics[2] = {
+    domain_topic.c_str(),
+    &service_name[1] // Topic string cannot start with a separator (/)
+  };
   rmw_client_t * rmw_client = nullptr;
   DPS_Status ret;
 
@@ -124,7 +127,7 @@ rmw_create_client(
     RMW_SET_ERROR_MSG("failed to set subscription data");
     goto fail;
   }
-  ret = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE, nullptr,
+  ret = DPS_InitPublication(info->request_publication_, topics, 2, DPS_FALSE, nullptr,
     Listener::onAcknowledgement);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize publication");

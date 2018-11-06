@@ -74,8 +74,11 @@ rmw_create_subscription(
 
   (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &topic_name[1];
+  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
+  const char * topics[2] = {
+    domain_topic.c_str(),
+    &topic_name[1] // Topic string cannot start with a separator (/)
+  };
   rmw_subscription_t * rmw_subscription = nullptr;
   DPS_Status ret;
 
@@ -90,7 +93,7 @@ rmw_create_subscription(
     _register_type(impl->node_, info->type_support_, info->typesupport_identifier_);
   }
 
-  info->subscription_ = DPS_CreateSubscription(impl->node_, &topic, 1);
+  info->subscription_ = DPS_CreateSubscription(impl->node_, topics, 2);
   if (!info->subscription_) {
     RMW_SET_ERROR_MSG("failed to create subscription");
     goto fail;
