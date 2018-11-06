@@ -159,7 +159,6 @@ rmw_create_node(
   size_t domain_id,
   const rmw_node_security_options_t * security_options)
 {
-  // TODO RMW_SECURITY_ENFORCEMENT_PERMISSIVE, ENFORCE
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(name=%s,namespace_=%s,domain_id=%d,security_options={enforce_security=%d,security_root_path=%s})", __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security, security_options->security_root_path);
@@ -170,6 +169,11 @@ rmw_create_node(
   }
   if (!security_options) {
     RMW_SET_ERROR_MSG("security_options is null");
+    return nullptr;
+  }
+  if (security_options->enforce_security != RMW_SECURITY_ENFORCEMENT_PERMISSIVE ||
+      security_options->security_root_path != NULL) {
+    RMW_SET_ERROR_MSG("security is not implemented");
     return nullptr;
   }
 
