@@ -21,6 +21,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "qos_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"
@@ -33,7 +34,8 @@ rmw_create_subscription(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,topic_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d},ignore_local_publications=%d)", __FUNCTION__, node, type_supports, topic_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability, ignore_local_publications);
+    "%s(node=%p,type_supports=%p,topic_name=%s,qos_policies={history=%s,depth=%d,reliability=%s,durability=%s},ignore_local_publications=%d)", __FUNCTION__, node, type_supports, topic_name,
+    qos_history_string(qos_policies->history), qos_policies->depth, qos_reliability_string(qos_policies->reliability), qos_durability_string(qos_policies->durability), ignore_local_publications);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

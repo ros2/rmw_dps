@@ -22,6 +22,7 @@
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "client_service_common.hpp"
+#include "qos_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"
@@ -34,7 +35,8 @@ rmw_create_client(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,service_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})", __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability);
+    "%s(node=%p,type_supports=%p,service_name=%s,qos_policies={history=%s,depth=%d,reliability=%s,durability=%s})", __FUNCTION__, node, type_supports, service_name,
+    qos_history_string(qos_policies->history), qos_policies->depth, qos_reliability_string(qos_policies->reliability), qos_durability_string(qos_policies->durability));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
