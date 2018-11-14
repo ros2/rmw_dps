@@ -67,7 +67,6 @@ rmw_ret_t
 rmw_publish_serialized_message(
   const rmw_publisher_t * publisher, const rmw_serialized_message_t * serialized_message)
 {
-  auto error_allocator = rcutils_get_default_allocator();
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     publisher, "publisher pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(

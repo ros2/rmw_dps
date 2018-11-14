@@ -53,9 +53,8 @@ rmw_service_server_is_available(
   }
 
   // TODO
-
-  // all conditions met, there is a service server available
-  *is_available = true;
-  return RMW_RET_OK;
+  *is_available = false;
+  RMW_SET_ERROR_MSG("rmw_service_server_is_available is not implemented");
+  return RMW_RET_ERROR;
 }
 }  // extern "C"

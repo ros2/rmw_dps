@@ -30,7 +30,7 @@ extern "C"
 rmw_ret_t
 rmw_init()
 {
-  rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_ERROR);
+  rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_DEBUG);
   (void)ret;
   DPS_Debug = 0;
 

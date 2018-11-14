@@ -14,6 +14,7 @@
 
 #include "rcutils/logging_macros.h"
 
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
 extern "C"
@@ -33,6 +34,7 @@ rmw_get_node_names(
   (void)node_names;
   (void)node_namespaces;
 
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_get_node_names is not implemented");
+  return RMW_RET_ERROR;
 }
 }  // extern "C"

@@ -12,33 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcutils/logging_macros.h"
+#ifndef QOS_COMMON_HPP_
+#define QOS_COMMON_HPP_
 
-#include "rmw/error_handling.h"
-#include "rmw/get_topic_names_and_types.h"
-#include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
 
-extern "C"
-{
-rmw_ret_t
-rmw_get_topic_names_and_types(
-  const rmw_node_t * node,
-  rcutils_allocator_t * allocator,
-  bool no_demangle,
-  rmw_names_and_types_t * topic_names_and_types)
-{
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_dps_cpp",
-    __FUNCTION__);
+const char * qos_history_string(rmw_qos_history_policy_t history);
 
-  // TODO
-  (void)node;
-  (void)allocator;
-  (void)no_demangle;
-  (void)topic_names_and_types;
+const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability);
 
-  RMW_SET_ERROR_MSG("rmw_get_topic_names_and_types is not implemented");
-  return RMW_RET_ERROR;
-}
-}  // extern "C"
+const char * qos_durability_string(rmw_qos_durability_policy_t durability);
+
+#endif  // QOS_COMMON_HPP_

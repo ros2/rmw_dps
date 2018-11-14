@@ -56,6 +56,16 @@ rmw_create_subscription(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
+  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
+      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
+    RMW_SET_ERROR_MSG("requested qos is not implemented");
+    return nullptr;
+  }
+
+  if (ignore_local_publications) {
+    RMW_SET_ERROR_MSG("ignore_local_publications is not implemented");
+    return nullptr;
+  }
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {

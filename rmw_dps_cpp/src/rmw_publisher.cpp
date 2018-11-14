@@ -56,6 +56,13 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
+#if 0 // TODO effective qos depends on subscriber
+  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
+      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
+    RMW_SET_ERROR_MSG("requested qos is not implemented");
+    return nullptr;
+  }
+#endif
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {
@@ -131,17 +138,6 @@ rmw_create_publisher(
     goto fail;
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
-
-  // TODO trigger the guard condition to emulate EDP for now
-  {
-    rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
-    if (ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to trigger graph guard condition: %s",
-        rmw_get_error_string().str);
-    }
-  }
 
   return rmw_publisher;
 

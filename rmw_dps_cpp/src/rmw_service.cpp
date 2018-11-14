@@ -58,6 +58,11 @@ rmw_create_service(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
+  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
+      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
+    RMW_SET_ERROR_MSG("requested qos is not implemented");
+    return nullptr;
+  }
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {
@@ -179,7 +184,6 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,service=%p)", __FUNCTION__, node, service);
-
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

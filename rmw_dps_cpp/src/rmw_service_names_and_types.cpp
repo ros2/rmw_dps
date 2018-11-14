@@ -14,6 +14,7 @@
 
 #include "rcutils/logging_macros.h"
 
+#include "rmw/error_handling.h"
 #include "rmw/get_service_names_and_types.h"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
@@ -35,6 +36,7 @@ rmw_get_service_names_and_types(
   (void)allocator;
   (void)service_names_and_types;
 
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_get_service_names_and_types is not implemented");
+  return RMW_RET_ERROR;
 }
 }  // extern "C"

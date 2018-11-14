@@ -14,6 +14,7 @@
 
 #include "rcutils/logging_macros.h"
 
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
 extern "C"
@@ -30,7 +31,8 @@ rmw_count_publishers(
 
   // TODO
   *count = 0;
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_count_publishers is not implemented");
+  return RMW_RET_ERROR;
 }
 
 rmw_ret_t
@@ -45,6 +47,7 @@ rmw_count_subscribers(
 
   // TODO
   *count = 0;
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_count_subscribers is not implemented");
+  return RMW_RET_ERROR;
 }
 }  // extern "C"

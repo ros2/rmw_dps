@@ -57,6 +57,13 @@ rmw_create_client(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
+#if 0 // TODO effective qos depends on subscriber
+  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
+      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
+    RMW_SET_ERROR_MSG("requested qos is not implemented");
+    return nullptr;
+  }
+#endif
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {

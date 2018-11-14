@@ -25,6 +25,10 @@ extern "C"
 rmw_ret_t
 rmw_trigger_guard_condition(const rmw_guard_condition_t * guard_condition_handle)
 {
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s(guard_condition_handle={data=%p})", __FUNCTION__, guard_condition_handle->data);
+
   assert(guard_condition_handle);
 
   if (guard_condition_handle->implementation_identifier != intel_dps_identifier) {
