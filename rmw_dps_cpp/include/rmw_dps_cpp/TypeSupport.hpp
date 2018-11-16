@@ -21,6 +21,8 @@
 #include <cassert>
 #include <string>
 
+#include <dps/CborStream.hpp>
+
 #include "rcutils/logging_macros.h"
 
 #include "rosidl_typesupport_introspection_cpp/field_types.hpp"
@@ -34,8 +36,6 @@
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
 #include "rosidl_typesupport_introspection_c/service_introspection.h"
 #include "rosidl_typesupport_introspection_c/visibility_control.h"
-
-#include "CborStream.hpp"
 
 namespace rmw_dps_cpp
 {
@@ -73,7 +73,7 @@ struct StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
     return std::string(data.data);
   }
 
-  static void assign(cbor::RxStream & deser, void * field, bool)
+  static void assign(dps::RxStream & deser, void * field, bool)
   {
     std::string str;
     deser >> str;
@@ -93,7 +93,7 @@ struct StringHelper<rosidl_typesupport_introspection_cpp::MessageMembers>
     return *(static_cast<std::string *>(data));
   }
 
-  static void assign(cbor::RxStream & deser, void * field, bool call_new)
+  static void assign(dps::RxStream & deser, void * field, bool call_new)
   {
     std::string & str = *(std::string *)field;
     if (call_new) {
@@ -107,9 +107,9 @@ template<typename MembersType>
 class TypeSupport
 {
 public:
-  bool serializeROSmessage(const void * ros_message, cbor::TxStream & ser);
+  bool serializeROSmessage(const void * ros_message, dps::TxStream & ser);
 
-  bool deserializeROSmessage(cbor::RxStream & data, void * ros_message);
+  bool deserializeROSmessage(dps::RxStream & data, void * ros_message);
 
 protected:
   TypeSupport(const MembersType * members);
@@ -118,10 +118,10 @@ protected:
 
 private:
   bool serializeROSmessage(
-    cbor::TxStream & ser, const MembersType * members, const void * ros_message);
+    dps::TxStream & ser, const MembersType * members, const void * ros_message);
 
   bool deserializeROSmessage(
-    cbor::RxStream & deser, const MembersType * members, void * ros_message,
+    dps::RxStream & deser, const MembersType * members, void * ros_message,
     bool call_new);
 };
 

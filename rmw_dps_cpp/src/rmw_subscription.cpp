@@ -18,6 +18,7 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/SubscriberListener.hpp"
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
@@ -56,11 +57,6 @@ rmw_create_subscription(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
-  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
-      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
-    RMW_SET_ERROR_MSG("requested qos is not implemented");
-    return nullptr;
-  }
 
   if (ignore_local_publications) {
     RMW_SET_ERROR_MSG("ignore_local_publications is not implemented");
@@ -86,12 +82,11 @@ rmw_create_subscription(
 
   (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
-  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
-  const char * topics[2] = {
-    domain_topic.c_str(),
+  std::vector<std::string> topics = {
     &topic_name[1] // Topic string cannot start with a separator (/)
   };
   rmw_subscription_t * rmw_subscription = nullptr;
+  dps::QoS qos;
   DPS_Status ret;
 
   info = new CustomSubscriberInfo();
@@ -105,20 +100,21 @@ rmw_create_subscription(
     _register_type(impl->node_, info->type_support_, info->typesupport_identifier_);
   }
 
-  info->subscription_ = DPS_CreateSubscription(impl->node_, topics, 2);
-  if (!info->subscription_) {
-    RMW_SET_ERROR_MSG("failed to create subscription");
+  get_qos(*qos_policies, qos);
+
+  info->listener_ = new SubscriberListener();
+  if (!info->listener_) {
+    RMW_SET_ERROR_MSG("failed to create listener");
     goto fail;
   }
-  info->listener_ = new Listener;
-  ret = DPS_SetSubscriptionData(info->subscription_, info->listener_);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to set subscription data");
+  info->subscriber_ = new dps::Subscriber(qos, info->listener_);
+  if (!info->subscriber_) {
+    RMW_SET_ERROR_MSG("failed to create subscriber");
     goto fail;
   }
-  ret = DPS_Subscribe(info->subscription_, Listener::onPublication);
+  ret = info->subscriber_->initialize(impl->node_, topics);
   if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to subscribe");
+    RMW_SET_ERROR_MSG("failed to initialize subscribe");
     goto fail;
   }
 
@@ -141,14 +137,17 @@ rmw_create_subscription(
   return rmw_subscription;
 
 fail:
-  if (info->subscription_) {
-    DPS_DestroySubscription(info->subscription_);
+  if (info) {
+    if (info->subscriber_) {
+      info->subscriber_->close();
+      delete info->subscriber_;
+    }
+    delete info->listener_;
+    if (info->type_support_) {
+      _delete_typesupport(info->type_support_, info->typesupport_identifier_);
+    }
+    delete info;
   }
-  delete info->listener_;
-  if (info->type_support_) {
-    _delete_typesupport(info->type_support_, info->typesupport_identifier_);
-  }
-  delete info;
 
   if (rmw_subscription) {
     if (rmw_subscription->topic_name) {
@@ -190,8 +189,9 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
 
   if (info) {
-    if (info->subscription_) {
-        DPS_DestroySubscription(info->subscription_);
+    if (info->subscriber_) {
+      info->subscriber_->close();
+      delete info->subscriber_;
     }
     delete info->listener_;
     if (info->type_support_) {
@@ -203,11 +203,12 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
       _unregister_type(impl->node_, info->type_support_, info->typesupport_identifier_);
     }
+    delete info;
   }
-  delete info;
 
   if (subscription->topic_name) {
     rmw_free(const_cast<char *>(subscription->topic_name));
+    subscription->topic_name = nullptr;
   }
   rmw_subscription_free(subscription);
 

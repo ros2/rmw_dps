@@ -14,10 +14,13 @@
 
 #include "rcutils/logging_macros.h"
 
+#include <dps/QoS.hpp>
+
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/PublisherListener.hpp"
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
@@ -57,13 +60,6 @@ rmw_create_client(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
-#if 0 // TODO effective qos depends on subscriber
-  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
-      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
-    RMW_SET_ERROR_MSG("requested qos is not implemented");
-    return nullptr;
-  }
-#endif
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {
@@ -88,9 +84,7 @@ rmw_create_client(
   }
 
   CustomClientInfo * info = nullptr;
-  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
-  const char * topics[2] = {
-    domain_topic.c_str(),
+  std::vector<std::string> topics = {
     &service_name[1] // Topic string cannot start with a separator (/)
   };
   rmw_client_t * rmw_client = nullptr;
@@ -125,28 +119,23 @@ rmw_create_client(
     _register_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
   }
 
-  info->request_publication_ = DPS_CreatePublication(impl->node_);
-  if (!info->request_publication_) {
-    RMW_SET_ERROR_MSG("failed to create publication");
+  dps::QoS qos;
+  get_qos(*qos_policies, qos);
+
+  info->listener_ = new PublisherListener();
+  if (!info->listener_) {
+    RMW_SET_ERROR_MSG("failed to create listener");
     goto fail;
   }
-  info->response_listener_ = new Listener;
-  ret = DPS_SetPublicationData(info->request_publication_, info->response_listener_);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to set subscription data");
+
+  info->publisher_ = new dps::Publisher(qos, info->listener_);
+  if (!info->publisher_) {
+    RMW_SET_ERROR_MSG("failed to create publisher");
     goto fail;
   }
-  ret = DPS_InitPublication(info->request_publication_, topics, 2, DPS_FALSE, nullptr,
-    Listener::onAcknowledgement);
+  ret = info->publisher_->initialize(info->node_, topics);
   if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to initialize publication");
-    goto fail;
-  }
-  DPS_QoS qos;
-  qos.historyDepth = qos_policies->depth;
-  ret = DPS_PublicationConfigureQoS(info->request_publication_, &qos);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to configure qos");
+    RMW_SET_ERROR_MSG("failed to initialize publisher");
     goto fail;
   }
 
@@ -182,10 +171,10 @@ fail:
       "leaking type support objects because node impl is null");
   }
   // TODO _delete_typesupport ?
-  if (info->request_publication_) {
-    DPS_DestroyPublication(info->request_publication_);
+  if (info->publisher_) {
+    info->publisher_->close();
+    delete info->publisher_;
   }
-  delete info->response_listener_;
   delete info;
 
   if (rmw_client) {
@@ -236,8 +225,9 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
         info->typesupport_identifier_);
     }
     // TODO _delete_typesupport ?
-    if (info->request_publication_) {
-      DPS_DestroyPublication(info->request_publication_);
+    if (info->publisher_) {
+      info->publisher_->close();
+      delete info->publisher_;
     }
   }
   delete info;

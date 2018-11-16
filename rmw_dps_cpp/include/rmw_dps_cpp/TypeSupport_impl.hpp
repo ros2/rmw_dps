@@ -106,7 +106,7 @@ template<typename T>
 void serialize_field(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
   void * field,
-  cbor::TxStream & ser)
+  dps::TxStream & ser)
 {
   if (!member->is_array_) {
     ser << *static_cast<T *>(field);
@@ -123,7 +123,7 @@ template<typename T>
 void serialize_field(
   const rosidl_typesupport_introspection_c__MessageMember * member,
   void * field,
-  cbor::TxStream & ser)
+  dps::TxStream & ser)
 {
   if (!member->is_array_) {
     ser << *static_cast<T *>(field);
@@ -140,7 +140,7 @@ inline
 void serialize_field<std::string>(
   const rosidl_typesupport_introspection_c__MessageMember * member,
   void * field,
-  cbor::TxStream & ser)
+  dps::TxStream & ser)
 {
   using CStringHelper = StringHelper<rosidl_typesupport_introspection_c__MessageMembers>;
   if (!member->is_array_) {
@@ -174,7 +174,7 @@ void serialize_field<std::string>(
 inline
 size_t get_submessage_sequence_serialize(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
-  cbor::TxStream & ser,
+  dps::TxStream & ser,
   void * & field,
   void * & subros_message)
 {
@@ -196,7 +196,7 @@ size_t get_submessage_sequence_serialize(
 inline
 size_t get_submessage_sequence_serialize(
   const rosidl_typesupport_introspection_c__MessageMember * member,
-  cbor::TxStream & ser,
+  dps::TxStream & ser,
   void * & field,
   void * & subros_message)
 {
@@ -217,7 +217,7 @@ size_t get_submessage_sequence_serialize(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::serializeROSmessage(
-  cbor::TxStream & ser, const MembersType * members, const void * ros_message)
+  dps::TxStream & ser, const MembersType * members, const void * ros_message)
 {
   assert(ros_message);
   assert(members);
@@ -302,7 +302,7 @@ template<typename T>
 void deserialize_field(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
   void * field,
-  cbor::RxStream & deser,
+  dps::RxStream & deser,
   bool)
 {
   if (!member->is_array_) {
@@ -320,7 +320,7 @@ template<typename T>
 void deserialize_field(
   const rosidl_typesupport_introspection_c__MessageMember * member,
   void * field,
-  cbor::RxStream & deser,
+  dps::RxStream & deser,
   bool)
 {
   if (!member->is_array_) {
@@ -343,7 +343,7 @@ inline
 void deserialize_field<std::string>(
   const rosidl_typesupport_introspection_c__MessageMember * member,
   void * field,
-  cbor::RxStream & deser,
+  dps::RxStream & deser,
   bool call_new)
 {
   using CStringHelper = StringHelper<rosidl_typesupport_introspection_c__MessageMembers>;
@@ -381,7 +381,7 @@ void deserialize_field<std::string>(
 inline
 size_t get_submessage_sequence_deserialize(
   const rosidl_typesupport_introspection_cpp::MessageMember * member,
-  cbor::RxStream & deser,
+  dps::RxStream & deser,
   void * & field,
   void * & subros_message,
   bool & call_new)
@@ -405,7 +405,7 @@ size_t get_submessage_sequence_deserialize(
 inline
 size_t get_submessage_sequence_deserialize(
   const rosidl_typesupport_introspection_c__MessageMember * member,
-  cbor::RxStream & deser,
+  dps::RxStream & deser,
   void * & field,
   void * & subros_message,
   bool & call_new)
@@ -426,7 +426,7 @@ size_t get_submessage_sequence_deserialize(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::deserializeROSmessage(
-  cbor::RxStream & deser, const MembersType * members, void * ros_message, bool call_new)
+  dps::RxStream & deser, const MembersType * members, void * ros_message, bool call_new)
 {
   assert(members);
   assert(ros_message);
@@ -509,7 +509,7 @@ bool TypeSupport<MembersType>::deserializeROSmessage(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::serializeROSmessage(
-  const void * ros_message, cbor::TxStream & ser)
+  const void * ros_message, dps::TxStream & ser)
 {
   assert(ros_message);
 
@@ -519,7 +519,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
     ser << (uint8_t)0;
   }
   if (ser.status() == DPS_ERR_OVERFLOW) {
-      ser = cbor::TxStream(ser.size_needed());
+      ser = dps::TxStream(ser.size_needed());
       if (members_->member_count_ != 0) {
           TypeSupport::serializeROSmessage(ser, members_, ros_message);
       } else {
@@ -531,7 +531,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::deserializeROSmessage(
-  cbor::RxStream & deser, void * ros_message)
+  dps::RxStream & deser, void * ros_message)
 {
   assert(ros_message);
 

@@ -17,6 +17,8 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/PublisherListener.hpp"
+#include "rmw_dps_cpp/SubscriberListener.hpp"
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/custom_service_info.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
@@ -46,7 +48,7 @@ check_wait_set_for_data(
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
       auto custom_client_info = static_cast<CustomClientInfo *>(data);
-      if (custom_client_info && custom_client_info->response_listener_->hasData()) {
+      if (custom_client_info && custom_client_info->listener_->hasData()) {
         return true;
       }
     }
@@ -56,7 +58,7 @@ check_wait_set_for_data(
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
       auto custom_service_info = static_cast<CustomServiceInfo *>(data);
-      if (custom_service_info && custom_service_info->request_listener_->hasData()) {
+      if (custom_service_info && custom_service_info->listener_->hasData()) {
         return true;
       }
     }
@@ -121,7 +123,7 @@ rmw_wait(
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
       auto custom_client_info = static_cast<CustomClientInfo *>(data);
-      custom_client_info->response_listener_->attachCondition(conditionMutex, conditionVariable);
+      custom_client_info->listener_->attachCondition(conditionMutex, conditionVariable);
     }
   }
 
@@ -129,7 +131,7 @@ rmw_wait(
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
       auto custom_service_info = static_cast<CustomServiceInfo *>(data);
-      custom_service_info->request_listener_->attachCondition(conditionMutex, conditionVariable);
+      custom_service_info->listener_->attachCondition(conditionMutex, conditionVariable);
     }
   }
 
@@ -188,8 +190,8 @@ rmw_wait(
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
       auto custom_client_info = static_cast<CustomClientInfo *>(data);
-      custom_client_info->response_listener_->detachCondition();
-      if (!custom_client_info->response_listener_->hasData()) {
+      custom_client_info->listener_->detachCondition();
+      if (!custom_client_info->listener_->hasData()) {
         clients->clients[i] = 0;
       }
     }
@@ -199,8 +201,8 @@ rmw_wait(
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
       auto custom_service_info = static_cast<CustomServiceInfo *>(data);
-      custom_service_info->request_listener_->detachCondition();
-      if (!custom_service_info->request_listener_->hasData()) {
+      custom_service_info->listener_->detachCondition();
+      if (!custom_service_info->listener_->hasData()) {
         services->services[i] = 0;
       }
     }

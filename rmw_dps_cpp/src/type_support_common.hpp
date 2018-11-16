@@ -15,6 +15,8 @@
 #ifndef TYPE_SUPPORT_COMMON_HPP_
 #define TYPE_SUPPORT_COMMON_HPP_
 
+#include <dps/Node.hpp>
+
 #include "rmw/error_handling.h"
 
 #include "rmw_dps_cpp/MessageTypeSupport.hpp"
@@ -98,19 +100,19 @@ _create_response_type_support(const void * untyped_members, const char * typesup
 
 void
 _register_type(
-  DPS_Node * node,
+  dps::Node * node,
   void * untyped_typesupport,
   const char * typesupport_identifier);
 
 void
 _unregister_type(
-  DPS_Node * node,
+  dps::Node * node,
   void * untyped_typesupport,
   const char * typesupport_identifier);
 
 bool
 _get_registered_type(
-  DPS_Node * node,
+  dps::Node * node,
   const std::string & type_name,
   void ** untyped_typesupport);
 

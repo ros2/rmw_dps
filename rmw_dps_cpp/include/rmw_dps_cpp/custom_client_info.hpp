@@ -16,18 +16,20 @@
 #define RMW_DPS_CPP__CUSTOM_CLIENT_INFO_HPP_
 
 #include <dps/dps.h>
+#include <dps/Publisher.hpp>
+#include <dps/Subscriber.hpp>
 
 #include "rmw/rmw.h"
 
-#include "rmw_dps_cpp/Listener.hpp"
+class PublisherListener;
 
 typedef struct CustomClientInfo
 {
   void * request_type_support_;
   void * response_type_support_;
-  DPS_Publication * request_publication_;
-  Listener * response_listener_;
-  DPS_Node * node_;
+  dps::Publisher * publisher_;
+  PublisherListener * listener_;
+  dps::Node * node_;
   const char * typesupport_identifier_;
 } CustomClientInfo;
 

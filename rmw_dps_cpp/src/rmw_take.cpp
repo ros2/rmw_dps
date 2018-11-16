@@ -14,13 +14,15 @@
 
 #include <cassert>
 
+#include <dps/CborStream.hpp>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/serialized_message.h"
 #include "rmw/rmw.h"
 
-#include "rmw_dps_cpp/CborStream.hpp"
+#include "rmw_dps_cpp/SubscriberListener.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "ros_message_serialization.hpp"
@@ -30,15 +32,12 @@ extern "C"
 void
 _assign_message_info(
   rmw_message_info_t * message_info,
-  const DPS_Publication * pub)
+  dps::PublicationInfo * info)
 {
   rmw_gid_t * sender_gid = &message_info->publisher_gid;
   sender_gid->implementation_identifier = intel_dps_identifier;
   memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
-  const DPS_UUID * uuid = DPS_PublicationGetUUID(pub);
-  if (uuid) {
-    memcpy(sender_gid->data, uuid, sizeof(DPS_UUID));
-  }
+  memcpy(sender_gid->data, &info->uuid, sizeof(DPS_UUID));
 }
 
 rmw_ret_t
@@ -56,15 +55,18 @@ _take(
   }
 
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
-  assert(info);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
 
-  rmw_dps_cpp::cbor::RxStream buffer;
-  Publication pub;
+  dps::RxStream ser;
+  dps::PublicationInfo serInfo;
 
-  if (info->listener_->takeNextData(buffer, pub)) {
-    _deserialize_ros_message(buffer, ros_message, info->type_support_, info->typesupport_identifier_);
+  if (info->subscriber_->takeNextData(ser, serInfo)) {
+    info->listener_->data_taken();
+    if (!_deserialize_ros_message(ser, ros_message, info->type_support_, info->typesupport_identifier_)) {
+        return RMW_RET_ERROR;
+    }
     if (message_info) {
-      _assign_message_info(message_info, pub.get());
+      _assign_message_info(message_info, &serInfo);
     }
     *taken = true;
   }
@@ -129,11 +131,13 @@ _take_serialized_message(
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
   assert(info);
 
-  rmw_dps_cpp::cbor::RxStream buffer;
-  Publication pub;
+  dps::RxStream ser;
+  dps::PublicationInfo serInfo;
 
-  if (info->listener_->takeNextData(buffer, pub)) {
-    auto buffer_size = static_cast<size_t>(buffer.getBufferSize());
+  if (info->subscriber_->takeNextData(ser, serInfo)) {
+    info->listener_->data_taken();
+
+    auto buffer_size = static_cast<size_t>(ser.getBufferAvail());
     if (serialized_message->buffer_capacity < buffer_size) {
       auto ret = rmw_serialized_message_resize(serialized_message, buffer_size);
       if (ret != RMW_RET_OK) {
@@ -141,10 +145,10 @@ _take_serialized_message(
       }
     }
     serialized_message->buffer_length = buffer_size;
-    memcpy(serialized_message->buffer, buffer.getBuffer(), serialized_message->buffer_length);
+    memcpy(serialized_message->buffer, ser.getBufferPos(), serialized_message->buffer_length);
 
     if (message_info) {
-      _assign_message_info(message_info, pub.get());
+      _assign_message_info(message_info, &serInfo);
     }
     *taken = true;
   }

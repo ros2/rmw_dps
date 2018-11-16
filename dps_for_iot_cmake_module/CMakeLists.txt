@@ -39,7 +39,7 @@ else()
 endif()
 ExternalProject_Add(dps_for_iot
   PREFIX dps_for_iot
-  URL https://github.com/intel/dps-for-iot/archive/master.zip
+  URL https://github.com/intel/dps-for-iot/archive/rmw.zip
   CONFIGURE_COMMAND ""
   BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/rmw_dps_shared.def
   BUILD_ALWAYS TRUE

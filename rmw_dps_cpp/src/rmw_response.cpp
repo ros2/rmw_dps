@@ -14,12 +14,14 @@
 
 #include <cassert>
 
+#include <dps/CborStream.hpp>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
-#include "rmw_dps_cpp/CborStream.hpp"
+#include "rmw_dps_cpp/PublisherListener.hpp"
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/custom_service_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
@@ -53,21 +55,17 @@ rmw_take_response(
   CustomClientInfo * info = static_cast<CustomClientInfo *>(client->data);
   assert(info);
 
-  rmw_dps_cpp::cbor::RxStream buffer;
-  Publication pub;
+  dps::RxStream ser;
+  dps::PublicationInfo serInfo;
 
-  if (info->response_listener_->takeNextData(buffer, pub)) {
-    _deserialize_ros_message(buffer, ros_response, info->response_type_support_,
-      info->typesupport_identifier_);
-
-    // Get header
-    memset(request_header->writer_guid, 0, sizeof(request_header->writer_guid));
-    const DPS_UUID * uuid = DPS_PublicationGetUUID(pub.get());
-    if (uuid) {
-      memcpy(request_header->writer_guid, uuid, sizeof(DPS_UUID));
+  if (info->publisher_->takeNextData(ser, serInfo)) {
+    info->listener_->data_taken();
+    if (!_deserialize_ros_message(ser, ros_response, info->response_type_support_,
+                                  info->typesupport_identifier_)) {
+        return RMW_RET_ERROR;
     }
-    request_header->sequence_number = DPS_PublicationGetSequenceNum(pub.get());
-
+    memcpy(request_header->writer_guid, &serInfo.uuid, sizeof(request_header->writer_guid));
+    request_header->sequence_number = serInfo.sn;
     *taken = true;
   }
 
@@ -88,8 +86,6 @@ rmw_send_response(
   assert(request_header);
   assert(ros_response);
 
-  rmw_ret_t returnedValue = RMW_RET_ERROR;
-
   if (service->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("service handle not from this implementation");
     return RMW_RET_ERROR;
@@ -98,29 +94,20 @@ rmw_send_response(
   auto info = static_cast<CustomServiceInfo *>(service->data);
   assert(info);
 
-  auto request = info->requests_.find(*request_header);
-  if (request == info->requests_.end()) {
-    RMW_SET_ERROR_MSG("cannot find request");
-    return RMW_RET_ERROR;
-  }
+  dps::TxStream ser;
 
-  Publication pub = std::move(request->second);
-  rmw_dps_cpp::cbor::TxStream ser;
-
-  if (_serialize_ros_message(ros_response, ser, info->response_type_support_,
+  if (!_serialize_ros_message(ros_response, ser, info->response_type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status ret = DPS_AckPublication(pub.get(), ser.data(), ser.size());
-    if (ret == DPS_OK) {
-      returnedValue = RMW_RET_OK;
-    } else {
-      RMW_SET_ERROR_MSG("cannot send response");
-    }
-  } else {
     RMW_SET_ERROR_MSG("cannot serialize data");
+    return RMW_RET_ERROR;
   }
-
-  info->requests_.erase(request);
-  return returnedValue;
+  DPS_Status ret = info->subscriber_->ack(std::move(ser),
+    reinterpret_cast<DPS_UUID*>(request_header->writer_guid), request_header->sequence_number);
+  if (ret != DPS_OK) {
+    RMW_SET_ERROR_MSG("cannot send response");
+    return RMW_RET_ERROR;
+  }
+  return RMW_RET_OK;
 }
 }  // extern "C"

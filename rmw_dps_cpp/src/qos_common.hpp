@@ -15,6 +15,8 @@
 #ifndef QOS_COMMON_HPP_
 #define QOS_COMMON_HPP_
 
+#include <dps/QoS.hpp>
+
 #include "rmw/rmw.h"
 
 const char * qos_history_string(rmw_qos_history_policy_t history);
@@ -22,5 +24,7 @@ const char * qos_history_string(rmw_qos_history_policy_t history);
 const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability);
 
 const char * qos_durability_string(rmw_qos_durability_policy_t durability);
+
+bool get_qos(const rmw_qos_profile_t & qos_policies, dps::QoS & qos);
 
 #endif  // QOS_COMMON_HPP_

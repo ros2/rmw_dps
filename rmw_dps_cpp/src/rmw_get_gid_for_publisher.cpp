@@ -45,24 +45,12 @@ rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid)
   }
 
   auto info = static_cast<const CustomPublisherInfo *>(publisher->data);
-  if (!info || !info->publication_) {
+  if (!info) {
     RMW_SET_ERROR_MSG("publisher info handle is null");
     return RMW_RET_ERROR;
   }
 
-  gid->implementation_identifier = intel_dps_identifier;
-  static_assert(
-    sizeof(DPS_UUID) <= RMW_GID_STORAGE_SIZE,
-    "RMW_GID_STORAGE_SIZE insufficient to store the rmw_dps_cpp GID implementation."
-  );
-
-  memset(gid->data, 0, RMW_GID_STORAGE_SIZE);
-  const DPS_UUID * uuid = DPS_PublicationGetUUID(info->publication_);
-  if (!uuid) {
-    RMW_SET_ERROR_MSG("no guid found for publisher");
-    return RMW_RET_ERROR;
-  }
-  memcpy(gid->data, uuid, sizeof(DPS_UUID));
+  *gid = info->publisher_gid_;
   return RMW_RET_OK;
 }
 }  // extern "C"

@@ -17,6 +17,8 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/custom_node_info.hpp"
+
 extern "C"
 {
 rmw_ret_t
@@ -29,10 +31,24 @@ rmw_count_publishers(
     "rmw_dps_cpp",
     "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, node, topic_name, count);
 
-  // TODO
+  // safechecks
+
+  if (!node) {
+    RMW_SET_ERROR_MSG("null node handle");
+    return RMW_RET_ERROR;
+  }
+
   *count = 0;
-  RMW_SET_ERROR_MSG("rmw_count_publishers is not implemented");
-  return RMW_RET_ERROR;
+
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  *count = impl->node_->publisherCount(topic_name);
+
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "looking for publisher topic: %s, number of matches: %zu",
+    topic_name, *count);
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
@@ -45,9 +61,23 @@ rmw_count_subscribers(
     "rmw_dps_cpp",
     "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, node, topic_name, count);
 
-  // TODO
+  // safechecks
+
+  if (!node) {
+    RMW_SET_ERROR_MSG("null node handle");
+    return RMW_RET_ERROR;
+  }
+
   *count = 0;
-  RMW_SET_ERROR_MSG("rmw_count_subscribers is not implemented");
-  return RMW_RET_ERROR;
+
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  *count = impl->node_->subscriberCount(topic_name);
+
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "looking for subscriber topic: %s, number of matches: %zu",
+    topic_name, *count);
+
+  return RMW_RET_OK;
 }
 }  // extern "C"

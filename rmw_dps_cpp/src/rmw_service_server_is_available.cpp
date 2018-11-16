@@ -19,6 +19,7 @@
 #include "rmw/impl/cpp/macros.hpp"
 
 #include "rmw_dps_cpp/identifier.hpp"
+#include "rmw_dps_cpp/custom_client_info.hpp"
 
 extern "C"
 {
@@ -52,9 +53,35 @@ rmw_service_server_is_available(
     return RMW_RET_ERROR;
   }
 
-  // TODO
-  *is_available = false;
-  RMW_SET_ERROR_MSG("rmw_service_server_is_available is not implemented");
-  return RMW_RET_ERROR;
+  auto client_info = static_cast<CustomClientInfo *>(client->data);
+  if (!client_info) {
+    RMW_SET_ERROR_MSG("client info handle is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto pub_topics = client_info->publisher_->topics();
+  if (pub_topics.empty()) {
+    RMW_SET_ERROR_MSG("client topic is null");
+    return RMW_RET_ERROR;
+  }
+  auto pub_topic_name = pub_topics[0];
+
+  size_t number_of_subscribers = 0;
+  rmw_ret_t ret = rmw_count_subscribers(
+    node,
+    pub_topic_name.c_str(),
+    &number_of_subscribers);
+  if (ret != RMW_RET_OK) {
+    // error string already set
+    return ret;
+  }
+  if (0 == number_of_subscribers) {
+    // not ready
+    return RMW_RET_OK;
+  }
+
+  // all conditions met, there is a service server available
+  *is_available = true;
+  return RMW_RET_OK;
 }
 }  // extern "C"

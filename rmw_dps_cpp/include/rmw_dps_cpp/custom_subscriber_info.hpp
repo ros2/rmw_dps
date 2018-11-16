@@ -15,16 +15,19 @@
 #ifndef RMW_DPS_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_
 #define RMW_DPS_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+
 #include <dps/dps.h>
+#include <dps/Subscriber.hpp>
 
-#include "rmw_dps_cpp/Listener.hpp"
-
-class Listener;
+class SubscriberListener;
 
 typedef struct CustomSubscriberInfo
 {
-  DPS_Subscription * subscription_;
-  Listener * listener_;
+  dps::Subscriber * subscriber_;
+  SubscriberListener * listener_;
   void * type_support_;
   const char * typesupport_identifier_;
 } CustomSubscriberInfo;

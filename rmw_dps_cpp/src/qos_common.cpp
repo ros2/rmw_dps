@@ -14,7 +14,8 @@
 
 #include "qos_common.hpp"
 
-const char * qos_history_string(rmw_qos_history_policy_t history)
+const char *
+qos_history_string(rmw_qos_history_policy_t history)
 {
   switch (history) {
     case RMW_QOS_POLICY_HISTORY_KEEP_LAST:
@@ -28,7 +29,8 @@ const char * qos_history_string(rmw_qos_history_policy_t history)
   }
 }
 
-const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability)
+const char *
+qos_reliability_string(rmw_qos_reliability_policy_t reliability)
 {
   switch (reliability) {
     case RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT:
@@ -42,7 +44,8 @@ const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability)
   }
 }
 
-const char * qos_durability_string(rmw_qos_durability_policy_t durability)
+const char *
+qos_durability_string(rmw_qos_durability_policy_t durability)
 {
   switch (durability) {
     case RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL:
@@ -54,4 +57,32 @@ const char * qos_durability_string(rmw_qos_durability_policy_t durability)
     default:
       return nullptr;
   }
+}
+
+bool
+get_qos(const rmw_qos_profile_t & qos_policies, dps::QoS & qos)
+{
+  qos.depth = qos_policies.depth;
+
+  switch (qos_policies.reliability) {
+  case RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT:
+  case RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT:
+    qos.reliability = dps::DPS_QOS_BEST_EFFORT;
+    break;
+  case RMW_QOS_POLICY_RELIABILITY_RELIABLE:
+    qos.reliability = dps::DPS_QOS_RELIABLE;
+    break;
+  }
+
+  switch (qos_policies.durability) {
+  case RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT:
+  case RMW_QOS_POLICY_DURABILITY_VOLATILE:
+    qos.durability = dps::DPS_QOS_VOLATILE;
+    break;
+  case RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL:
+    qos.durability = dps::DPS_QOS_TRANSIENT;
+    break;
+  }
+
+  return true;
 }

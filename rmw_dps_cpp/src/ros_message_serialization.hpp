@@ -15,18 +15,18 @@
 #ifndef ROS_MESSAGE_SERIALIZATION_HPP_
 #define ROS_MESSAGE_SERIALIZATION_HPP_
 
-#include "rmw_dps_cpp/CborStream.hpp"
+#include <dps/CborStream.hpp>
 
 bool
 _serialize_ros_message(
   const void * ros_message,
-  rmw_dps_cpp::cbor::TxStream & ser,
+  dps::TxStream & ser,
   void * untyped_members,
   const char * typesupport_identifier);
 
 bool
 _deserialize_ros_message(
-  rmw_dps_cpp::cbor::RxStream & buffer,
+  dps::RxStream & buffer,
   void * ros_message,
   void * untyped_members,
   const char * typesupport_identifier);

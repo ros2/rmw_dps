@@ -24,29 +24,18 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 
+#include "node_listener.hpp"
+
 extern "C"
 {
-void
-node_destroyed(DPS_Node * node, void * data)
-{
-  (void)node;
-  DPS_Event * event = (DPS_Event *) data;
-  DPS_SignalEvent(event, DPS_OK);
-}
-
 rmw_ret_t
-destroy_node(DPS_Node * node)
+destroy_node(dps::Node * node)
 {
-  DPS_Event * event = DPS_CreateEvent();
-  if (!event) {
-    RMW_SET_ERROR_MSG("failed to allocate DPS_Event");
+  DPS_Status ret = node->close();
+  if (ret != DPS_OK) {
     return RMW_RET_ERROR;
   }
-  DPS_Status ret = DPS_DestroyNode(node, node_destroyed, event);
-  if (ret == DPS_OK) {
-    DPS_WaitForEvent(event);
-  }
-  DPS_DestroyEvent(event);
+  delete node;
   return RMW_RET_OK;
 }
 
@@ -91,7 +80,7 @@ create_node(
     goto fail;
   }
   node_handle->implementation_identifier = intel_dps_identifier;
-  node_impl->domain_id = domain_id;
+  node_impl->domain_id_ = domain_id;
   node_impl->graph_guard_condition_ = graph_guard_condition;
   node_handle->data = node_impl;
 
@@ -112,12 +101,16 @@ create_node(
   }
   memcpy(const_cast<char *>(node_handle->namespace_), namespace_, strlen(namespace_) + 1);
 
-  node_impl->node_ = DPS_CreateNode(nullptr, nullptr, nullptr);
+  node_impl->listener_ = new NodeListener(graph_guard_condition);
+  if (namespace_[0] == '/') {
+      ++namespace_; // Topic string cannot start with a separator (/)
+  }
+  node_impl->node_ = new dps::Node(domain_id, namespace_, name, node_impl->listener_);
   if (!node_impl->node_) {
     RMW_SET_ERROR_MSG("failed to allocate DPS_Node");
     goto fail;
   }
-  ret = DPS_StartNode(node_impl->node_, DPS_MCAST_PUB_ENABLE_SEND | DPS_MCAST_PUB_ENABLE_RECV, 0);
+  ret = node_impl->node_->initialize(DPS_MCAST_PUB_ENABLE_SEND | DPS_MCAST_PUB_ENABLE_RECV, 0);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to start DPS_Node");
     goto fail;
@@ -140,6 +133,7 @@ fail:
         "failed to destroy node during error handling");
     }
   }
+  delete node_impl->listener_;
   delete node_impl;
   if (graph_guard_condition) {
     rmw_ret_t ret = rmw_destroy_guard_condition(graph_guard_condition);
@@ -222,6 +216,7 @@ rmw_destroy_node(rmw_node_t * node)
     result_ret = RMW_RET_ERROR;
   }
 
+  delete impl->listener_;
   delete impl;
 
   return result_ret;

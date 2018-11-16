@@ -20,7 +20,7 @@
 bool
 _serialize_ros_message(
   const void * ros_message,
-  rmw_dps_cpp::cbor::TxStream & ser,
+  dps::TxStream & ser,
   void * untyped_typesupport,
   const char * typesupport_identifier)
 {
@@ -37,7 +37,7 @@ _serialize_ros_message(
 
 bool
 _deserialize_ros_message(
-  rmw_dps_cpp::cbor::RxStream & buffer,
+  dps::RxStream & buffer,
   void * ros_message,
   void * untyped_typesupport,
   const char * typesupport_identifier)

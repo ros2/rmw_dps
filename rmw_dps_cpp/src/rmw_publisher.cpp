@@ -56,13 +56,6 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
-#if 0 // TODO effective qos depends on subscriber
-  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
-      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
-    RMW_SET_ERROR_MSG("requested qos is not implemented");
-    return nullptr;
-  }
-#endif
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {
@@ -87,12 +80,12 @@ rmw_create_publisher(
   }
 
   CustomPublisherInfo * info = nullptr;
-  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
-  const char * topics[2] = {
-    domain_topic.c_str(),
+  std::vector<std::string> topics = {
     &topic_name[1] // Topic string cannot start with a separator (/)
   };
   rmw_publisher_t * rmw_publisher = nullptr;
+  dps::QoS qos;
+  const DPS_UUID * uuid;
   DPS_Status ret;
 
   info = new CustomPublisherInfo();
@@ -106,23 +99,32 @@ rmw_create_publisher(
     _register_type(impl->node_, info->type_support_, info->typesupport_identifier_);
   }
 
-  info->publication_ = DPS_CreatePublication(impl->node_);
-  if (!info->publication_) {
-    RMW_SET_ERROR_MSG("failed to create publication");
+  get_qos(*qos_policies, qos);
+
+  info->publisher_ = new dps::Publisher(qos, nullptr);
+  if (!info->publisher_) {
+    RMW_SET_ERROR_MSG("failed to create publisher");
     goto fail;
   }
-  ret = DPS_InitPublication(info->publication_, topics, 2, DPS_FALSE, nullptr, nullptr);
+  ret = info->publisher_->initialize(impl->node_, topics);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize publication");
     goto fail;
   }
-  DPS_QoS qos;
-  qos.historyDepth = qos_policies->depth;
-  ret = DPS_PublicationConfigureQoS(info->publication_, &qos);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to configure qos");
+
+  info->publisher_gid_.implementation_identifier = intel_dps_identifier;
+  static_assert(
+    sizeof(DPS_UUID) <= RMW_GID_STORAGE_SIZE,
+    "RMW_GID_STORAGE_SIZE insufficient to store the rmw_dps_cpp GID implementation."
+  );
+
+  memset(info->publisher_gid_.data, 0, RMW_GID_STORAGE_SIZE);
+  uuid = info->publisher_->uuid();
+  if (!uuid) {
+    RMW_SET_ERROR_MSG("no uuid found for publisher");
     goto fail;
   }
+  memcpy(info->publisher_gid_.data, uuid, sizeof(DPS_UUID));
 
   rmw_publisher = rmw_publisher_allocate();
   if (!rmw_publisher) {
@@ -143,8 +145,9 @@ rmw_create_publisher(
 
 fail:
   _delete_typesupport(info->type_support_, info->typesupport_identifier_);
-  if (info->publication_) {
-    DPS_DestroyPublication(info->publication_);
+  if (info->publisher_) {
+    info->publisher_->close();
+    delete info->publisher_;
   }
   delete info;
 
@@ -187,8 +190,9 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
   if (info) {
-    if (info->publication_) {
-      DPS_DestroyPublication(info->publication_);
+    if (info->publisher_) {
+      info->publisher_->close();
+      delete info->publisher_;
     }
     if (info->type_support_) {
       auto impl = static_cast<CustomNodeInfo *>(node->data);
@@ -199,10 +203,11 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 
       _unregister_type(impl->node_, info->type_support_, info->typesupport_identifier_);
     }
+    delete info;
   }
-  delete info;
   if (publisher->topic_name) {
     rmw_free(const_cast<char *>(publisher->topic_name));
+    publisher->topic_name = nullptr;
   }
   rmw_publisher_free(publisher);
 

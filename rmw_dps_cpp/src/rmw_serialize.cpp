@@ -43,7 +43,7 @@ rmw_serialize(
   }
 
   auto tss = _create_message_type_support(ts->data, ts->typesupport_identifier);
-  rmw_dps_cpp::cbor::TxStream ser;
+  dps::TxStream ser;
 
   auto ret = _serialize_ros_message(ros_message, ser, tss, ts->typesupport_identifier);
   auto data_length = static_cast<size_t>(ser.size());
@@ -82,7 +82,7 @@ rmw_deserialize(
   }
 
   auto tss = _create_message_type_support(ts->data, ts->typesupport_identifier);
-  rmw_dps_cpp::cbor::RxStream buffer(
+  dps::RxStream buffer(
     (const uint8_t*)serialized_message->buffer, serialized_message->buffer_length);
 
   auto ret = _deserialize_ros_message(buffer, ros_message, tss, ts->typesupport_identifier);

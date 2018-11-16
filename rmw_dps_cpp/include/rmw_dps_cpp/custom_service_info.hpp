@@ -18,23 +18,17 @@
 #include <map>
 
 #include <dps/dps.h>
+#include <dps/Subscriber.hpp>
 
-#include "rmw_dps_cpp/Listener.hpp"
-
-inline bool
-operator<(const rmw_request_id_t & lhs, const rmw_request_id_t & rhs)
-{
-    return memcmp(&lhs, &rhs, sizeof(rmw_request_id_t)) < 0;
-}
+class SubscriberListener;
 
 typedef struct CustomServiceInfo
 {
   void * request_type_support_;
   void * response_type_support_;
-  DPS_Subscription * request_subscription_;
-  Listener * request_listener_;
-  std::map<rmw_request_id_t, Publication> requests_;
-  DPS_Node * node_;
+  dps::Subscriber * subscriber_;
+  SubscriberListener * listener_;
+  dps::Node * node_;
   const char * typesupport_identifier_;
 } CustomServiceInfo;
 

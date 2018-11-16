@@ -81,7 +81,7 @@ _create_response_type_support(const void * untyped_members, const char * typesup
 
 void
 _register_type(
-  DPS_Node * node,
+  dps::Node * node,
   void * untyped_typesupport,
   const char * typesupport_identifier)
 {
@@ -103,7 +103,7 @@ _register_type(
 
 void
 _unregister_type(
-  DPS_Node * node,
+  dps::Node * node,
   void * untyped_typesupport,
   const char * typesupport_identifier)
 {
@@ -126,7 +126,7 @@ _unregister_type(
 
 bool
 _get_registered_type(
-  DPS_Node * node,
+  dps::Node * node,
   const std::string & type_name,
   void ** untyped_typesupport)
 {

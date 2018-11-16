@@ -19,6 +19,7 @@
 #include "rmw/rmw.h"
 #include "rmw/impl/cpp/macros.hpp"
 
+#include "rmw_dps_cpp/SubscriberListener.hpp"
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_service_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
@@ -58,11 +59,6 @@ rmw_create_service(
     RMW_SET_ERROR_MSG("qos_profile is null");
     return nullptr;
   }
-  if ((qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT && qos_policies->reliability != RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT) ||
-      (qos_policies->durability != RMW_QOS_POLICY_DURABILITY_VOLATILE && qos_policies->durability != RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)) {
-    RMW_SET_ERROR_MSG("requested qos is not implemented");
-    return nullptr;
-  }
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {
@@ -82,12 +78,11 @@ rmw_create_service(
   }
 
   CustomServiceInfo * info = nullptr;
-  std::string domain_topic = std::string("$ROS/domain/") + std::to_string(impl->domain_id);
-  const char * topics[2] = {
-    domain_topic.c_str(),
+  std::vector<std::string> topics = {
     &service_name[1] // Topic string cannot start with a separator (/)
   };
   rmw_service_t * rmw_service = nullptr;
+  dps::QoS qos;
   DPS_Status ret;
 
   info = new CustomServiceInfo();
@@ -119,20 +114,21 @@ rmw_create_service(
     _register_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
   }
 
-  info->request_listener_ = new Listener;
-  info->request_subscription_ = DPS_CreateSubscription(impl->node_, topics, 2);
-  if (!info->request_subscription_) {
-    RMW_SET_ERROR_MSG("failed to create subscription");
+  get_qos(*qos_policies, qos);
+
+  info->listener_ = new SubscriberListener();
+  if (!info->listener_) {
+    RMW_SET_ERROR_MSG("failed to create listener");
     goto fail;
   }
-  ret = DPS_SetSubscriptionData(info->request_subscription_, info->request_listener_);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to set subscription data");
+  info->subscriber_ = new dps::Subscriber(qos, info->listener_);
+  if (!info->subscriber_) {
+    RMW_SET_ERROR_MSG("failed to create subscriber");
     goto fail;
   }
-  ret = DPS_Subscribe(info->request_subscription_, Listener::onPublication);
+  ret = info->subscriber_->initialize(impl->node_, topics);
   if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to subscribe");
+    RMW_SET_ERROR_MSG("failed to initialize subscriber");
     goto fail;
   }
 
@@ -156,17 +152,20 @@ rmw_create_service(
   return rmw_service;
 
 fail:
-  if (info->request_subscription_) {
-    DPS_DestroySubscription(info->request_subscription_);
+  if (info) {
+    if (info->subscriber_) {
+      info->subscriber_->close();
+      delete info->subscriber_;
+    }
+    delete info->listener_;
+    if (info->request_type_support_) {
+      _unregister_type(impl->node_, info->request_type_support_, info->typesupport_identifier_);
+    }
+    if (info->response_type_support_) {
+      _unregister_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
+    }
+    delete info;
   }
-  delete info->request_listener_;
-  if (info->request_type_support_) {
-    _unregister_type(impl->node_, info->request_type_support_, info->typesupport_identifier_);
-  }
-  if (info->response_type_support_) {
-    _unregister_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
-  }
-  delete info;
 
   if (rmw_service) {
     if (rmw_service->service_name) {
@@ -207,10 +206,11 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
   auto info = static_cast<CustomServiceInfo *>(service->data);
 
   if (info) {
-    if (info->request_subscription_) {
-        DPS_DestroySubscription(info->request_subscription_);
+    if (info->subscriber_) {
+      info->subscriber_->close();
+      delete info->subscriber_;
     }
-    delete info->request_listener_;
+    delete info->listener_;
     if (info->request_type_support_) {
       _unregister_type(info->node_, info->request_type_support_,
         info->typesupport_identifier_);
@@ -219,8 +219,8 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
       _unregister_type(info->node_, info->response_type_support_,
         info->typesupport_identifier_);
     }
+    delete info;
   }
-  delete info;
 
   if (service->service_name) {
     rmw_free(const_cast<char *>(service->service_name));

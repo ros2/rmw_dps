@@ -12,20 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
-#define RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
+#ifndef RMW_DPS_CPP__NODE_LISTENER_HPP_
+#define RMW_DPS_CPP__NODE_LISTENER_HPP_
 
 #include <dps/dps.h>
-#include <dps/Publisher.hpp>
+#include <dps/Node.hpp>
 
 #include "rmw/rmw.h"
 
-typedef struct CustomPublisherInfo
-{
-  dps::Publisher * publisher_;
-  void * type_support_;
-  rmw_gid_t publisher_gid_;
-  const char * typesupport_identifier_;
-} CustomPublisherInfo;
+#include "types/guard_condition.hpp"
 
-#endif  // RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
+class NodeListener : public dps::NodeListener
+{
+public:
+  NodeListener(
+    rmw_guard_condition_t * graph_guard_condition)
+  : graph_guard_condition_(static_cast<GuardCondition *>(graph_guard_condition->data))
+  {}
+  virtual ~NodeListener() {};
+  virtual void onNewChange(dps::Node * node, const dps::RemoteNode * remote)
+  {
+    (void)node;
+    (void)remote;
+    graph_guard_condition_->trigger();
+  }
+  GuardCondition * graph_guard_condition_;
+};
+
+#endif  // RMW_DPS_CPP__NODE_LISTENER_HPP_

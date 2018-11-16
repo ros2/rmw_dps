@@ -14,12 +14,13 @@
 
 #include <cassert>
 
+#include <dps/CborStream.hpp>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
-#include "rmw_dps_cpp/CborStream.hpp"
 #include "rmw_dps_cpp/custom_publisher_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "ros_message_serialization.hpp"
@@ -35,9 +36,9 @@ rmw_publish(
     "rmw_dps_cpp",
     "%s(publisher=%p,ros_message=%p)", __FUNCTION__, publisher, ros_message);
 
-  assert(publisher);
-  assert(ros_message);
-  rmw_ret_t returnedValue = RMW_RET_ERROR;
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
 
   if (publisher->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("publisher handle not from this implementation");
@@ -45,22 +46,22 @@ rmw_publish(
   }
 
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
-  assert(info);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "publisher info pointer is null", return RMW_RET_ERROR);
 
-  rmw_dps_cpp::cbor::TxStream ser;
-
-  if (_serialize_ros_message(ros_message, ser, info->type_support_,
+  dps::TxStream ser;
+  if (!_serialize_ros_message(ros_message, ser, info->type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status ret = DPS_Publish(info->publication_, ser.data(), ser.size(), 0);
-    if (ret == DPS_OK) {
-      returnedValue = RMW_RET_OK;
-    }
-  } else {
     RMW_SET_ERROR_MSG("cannot serialize data");
+    return RMW_RET_ERROR;
+  }
+  DPS_Status ret = info->publisher_->publish(std::move(ser));
+  if (ret != DPS_OK) {
+    RMW_SET_ERROR_MSG("cannot publish data");
+    return RMW_RET_ERROR;
   }
 
-  return returnedValue;
+  return RMW_RET_OK;
 }
 
 rmw_ret_t
@@ -82,10 +83,10 @@ rmw_publish_serialized_message(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     info, "publisher info pointer is null", return RMW_RET_ERROR);
 
-  DPS_Status ret = DPS_Publish(
-    info->publication_, (uint8_t *)serialized_message->buffer,
-    serialized_message->buffer_length, 0);
-  if (ret == DPS_OK) {
+  dps::TxStream ser((uint8_t *)serialized_message->buffer,
+    serialized_message->buffer_length);
+  DPS_Status ret = info->publisher_->publish(std::move(ser));
+  if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("cannot publish data");
     return RMW_RET_ERROR;
   }

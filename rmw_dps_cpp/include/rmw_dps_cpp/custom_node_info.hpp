@@ -16,13 +16,17 @@
 #define RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_
 
 #include <dps/dps.h>
+#include <dps/Node.hpp>
 
 #include "rmw/rmw.h"
 
+class NodeListener;
+
 typedef struct CustomNodeInfo
 {
-  size_t domain_id;
-  DPS_Node * node_;
+  size_t domain_id_;
+  dps::Node * node_;
+  NodeListener * listener_;
   rmw_guard_condition_t * graph_guard_condition_;
 } CustomNodeInfo;
 
