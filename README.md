@@ -4,9 +4,9 @@ Implementation of the ROS Middleware (rmw) Interface using Intel's [Distributed 
 DPS is a new protocol that implements the publish/subscribe (pub/sub) communication pattern.  For more information see the project's [documentation](https://intel.github.io/dps-for-iot/).
 
 ## Building
-This project adds two build targets: `dps_for_iot_cmake_module` and `rmw_dps_cpp`.  `dps_for_iot_cmake_module` builds the DPS libraries, and requires the `SCons` build tool.
+This project adds two build targets: `dps_for_iot_cmake_module` and `rmw_dps_cpp`.  `dps_for_iot_cmake_module` builds the DPS libraries, and requires the `SCons` and `python-config` tools.
 ```
-sudo apt install scons
+sudo apt install scons python-dev
 ```
 `rmw_dps_cpp` is the rmw implementation.  To build, either add rmw_dps to to your local ros2.repos or explicitly clone it.
 
