@@ -37,11 +37,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
   set(VARIANT "release")
 endif()
+if(MSVC)
+  set(DEF_FILE "rmw_dps_shared.def")
+else()
+  set(DEF_FILE "librmw_dps_shared.map")
+endif()
 ExternalProject_Add(dps_for_iot
   PREFIX dps_for_iot
   URL https://github.com/intel/dps-for-iot/archive/master.zip
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/rmw_dps_shared.def
+  BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/${DEF_FILE}
   BUILD_ALWAYS TRUE
   INSTALL_COMMAND ""
   )
