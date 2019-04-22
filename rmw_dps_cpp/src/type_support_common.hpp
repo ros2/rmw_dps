@@ -15,6 +15,8 @@
 #ifndef TYPE_SUPPORT_COMMON_HPP_
 #define TYPE_SUPPORT_COMMON_HPP_
 
+#include <string>
+
 #include "rmw/error_handling.h"
 
 #include "rmw_dps_cpp/MessageTypeSupport.hpp"
@@ -32,20 +34,20 @@ using TypeSupport_cpp =
 using RequestTypeSupport_c = rmw_dps_cpp::RequestTypeSupport<
   rosidl_typesupport_introspection_c__ServiceMembers,
   rosidl_typesupport_introspection_c__MessageMembers
-  >;
+>;
 using RequestTypeSupport_cpp = rmw_dps_cpp::RequestTypeSupport<
   rosidl_typesupport_introspection_cpp::ServiceMembers,
   rosidl_typesupport_introspection_cpp::MessageMembers
-  >;
+>;
 
 using ResponseTypeSupport_c = rmw_dps_cpp::ResponseTypeSupport<
   rosidl_typesupport_introspection_c__ServiceMembers,
   rosidl_typesupport_introspection_c__MessageMembers
-  >;
+>;
 using ResponseTypeSupport_cpp = rmw_dps_cpp::ResponseTypeSupport<
   rosidl_typesupport_introspection_cpp::ServiceMembers,
   rosidl_typesupport_introspection_cpp::MessageMembers
-  >;
+>;
 
 bool
 using_introspection_c_typesupport(const char * typesupport_identifier);

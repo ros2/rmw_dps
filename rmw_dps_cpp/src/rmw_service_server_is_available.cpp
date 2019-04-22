@@ -52,7 +52,7 @@ rmw_service_server_is_available(
     return RMW_RET_ERROR;
   }
 
-  // TODO
+  // TODO(malsbat): implement
 
   // all conditions met, there is a service server available
   *is_available = true;

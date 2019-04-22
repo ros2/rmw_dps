@@ -22,7 +22,7 @@ extern "C"
 rmw_ret_t
 rmw_set_log_severity(rmw_log_severity_t severity)
 {
-  // TODO
+  // DPS does not allow selective logging at runtime
   (void)severity;
 
   return RMW_RET_OK;

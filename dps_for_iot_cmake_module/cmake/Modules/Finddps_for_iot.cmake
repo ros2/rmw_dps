@@ -44,8 +44,7 @@ find_library(dps_for_iot_LIBRARY
   NAMES dps_shared-${dps_for_iot_MAJOR_MINOR_VERSION} dps_shared)
 
 set(dps_for_iot_LIBRARIES
-  ${dps_for_iot_LIBRARY}
-  )
+  ${dps_for_iot_LIBRARY})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(dps_for_iot

@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <new>
 #include <dps/event.h>
+#include <new>
 
 #include "rcutils/logging_macros.h"
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
 #include "rmw_dps_cpp/custom_node_info.hpp"
@@ -30,7 +31,7 @@ void
 node_destroyed(DPS_Node * node, void * data)
 {
   (void)node;
-  DPS_Event * event = (DPS_Event *) data;
+  DPS_Event * event = reinterpret_cast<DPS_Event *>(data);
   DPS_SignalEvent(event, DPS_OK);
 }
 
@@ -52,6 +53,7 @@ destroy_node(DPS_Node * node)
 
 rmw_node_t *
 create_node(
+  rmw_context_t * context,
   const char * name,
   const char * namespace_)
 {
@@ -71,7 +73,7 @@ create_node(
   rmw_node_t * node_handle = nullptr;
   DPS_Status ret;
 
-  graph_guard_condition = rmw_create_guard_condition();
+  graph_guard_condition = rmw_create_guard_condition(context);
   if (!graph_guard_condition) {
     // error already set
     goto fail;
@@ -152,15 +154,26 @@ fail:
 
 rmw_node_t *
 rmw_create_node(
+  rmw_context_t * context,
   const char * name,
   const char * namespace_,
   size_t domain_id,
   const rmw_node_security_options_t * security_options)
 {
-  // TODO RMW_SECURITY_ENFORCEMENT_PERMISSIVE, ENFORCE
+  // TODO(malsbat): implement RMW_SECURITY_ENFORCEMENT_PERMISSIVE, ENFORCE
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(name=%s,namespace_=%s,domain_id=%d,security_options={enforce_security=%d,security_root_path=%s})", __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security, security_options->security_root_path);
+    "%s(name=%s,namespace_=%s,domain_id=%d,"
+    "security_options={enforce_security=%d,security_root_path=%s})",
+    __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security,
+    security_options->security_root_path);
+
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    init context,
+    context->implementation_identifier,
+    intel_dps_identifier,
+    return NULL);
 
   if (!name) {
     RMW_SET_ERROR_MSG("name is null");
@@ -171,7 +184,7 @@ rmw_create_node(
     return nullptr;
   }
 
-  return create_node(name, namespace_);
+  return create_node(context, name, namespace_);
 }
 
 rmw_ret_t

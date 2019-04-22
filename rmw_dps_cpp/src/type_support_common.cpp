@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 
 #include "rosidl_typesupport_introspection_c/identifier.h"
@@ -89,13 +91,9 @@ _register_type(
   (void)untyped_typesupport;
 
   if (using_introspection_c_typesupport(typesupport_identifier)) {
-    // TODO
-    // auto typed_typesupport = static_cast<TypeSupport_c *>(untyped_typesupport);
-    // registerType(node, typed_typesupport);
+    // TODO(malsbat): registerType?
   } else if (using_introspection_cpp_typesupport(typesupport_identifier)) {
-    // TODO
-    // auto typed_typesupport = static_cast<TypeSupport_cpp *>(untyped_typesupport);
-    // registerType(node, typed_typesupport);
+    // TODO(malsbat): registerType?
   } else {
     RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   }
@@ -111,12 +109,12 @@ _unregister_type(
 
   if (using_introspection_c_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<TypeSupport_c *>(untyped_typesupport);
-    if (false) { // TODO unregisterType(node, typed_typesupport->getName())) {
+    if (false) {  // TODO(malsbat): unregisterType?
       delete typed_typesupport;
     }
   } else if (using_introspection_cpp_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<TypeSupport_cpp *>(untyped_typesupport);
-    if (false) { // TODO unregisterType(node, typed_typesupport->getName())) {
+    if (false) {  // TODO(malsbat): unregisterType?
       delete typed_typesupport;
     }
   } else {
@@ -130,10 +128,11 @@ _get_registered_type(
   const std::string & type_name,
   void ** untyped_typesupport)
 {
+  // TODO(malsbat): implement
   (void)node;
   (void)type_name;
   (void)untyped_typesupport;
-  return false;                 // TODO
+  return false;
 }
 
 void

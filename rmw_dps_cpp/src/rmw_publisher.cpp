@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/allocators.h"
@@ -71,12 +73,16 @@ rmw_publisher_t *
 rmw_create_publisher(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies)
+  const char * topic_name,
+  const rmw_qos_profile_t * qos_policies)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,topic_name=%s,qos_policies={history=%s,depth=%d,reliability=%s,durability=%s})", __FUNCTION__, node, type_supports, topic_name,
-    qos_history_string(qos_policies->history), qos_policies->depth, qos_reliability_string(qos_policies->reliability), qos_durability_string(qos_policies->durability));
+    "%s(node=%p,type_supports=%p,topic_name=%s,"
+    "qos_policies={history=%s,depth=%d,reliability=%s,durability=%s})",
+    __FUNCTION__, node, type_supports, topic_name, qos_history_string(qos_policies->history),
+    qos_policies->depth, qos_reliability_string(qos_policies->reliability),
+    qos_durability_string(qos_policies->durability));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -147,13 +153,6 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("failed to initialize publication");
     goto fail;
   }
-  DPS_QoS qos;
-  qos.historyDepth = qos_policies->depth;
-  ret = DPS_PublicationConfigureQoS(info->publication_, &qos);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to configure qos");
-    goto fail;
-  }
 
   rmw_publisher = rmw_publisher_allocate();
   if (!rmw_publisher) {
@@ -170,7 +169,7 @@ rmw_create_publisher(
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
 
-  // TODO trigger the guard condition to emulate EDP for now
+  // TODO(malsbat): triggering the guard condition to emulate EDP for now
   {
     rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
     if (ret != RMW_RET_OK) {
@@ -198,6 +197,22 @@ fail:
   }
 
   return nullptr;
+}
+
+rmw_ret_t
+rmw_publisher_count_matched_subscriptions(
+  const rmw_publisher_t * publisher,
+  size_t * subscription_count)
+{
+  // TODO(malsbat): implement
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s(publisher=%p,subscription_count=%p)", __FUNCTION__, publisher, subscription_count);
+
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription_count, RMW_RET_INVALID_ARGUMENT);
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t

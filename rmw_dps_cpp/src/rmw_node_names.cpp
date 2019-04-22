@@ -28,7 +28,7 @@ rmw_get_node_names(
     "rmw_dps_cpp",
     __FUNCTION__);
 
-  // TODO
+  // TODO(malsbat): implement
   (void)node;
   (void)node_names;
   (void)node_namespaces;

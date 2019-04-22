@@ -28,7 +28,7 @@ namespace rmw_dps_cpp
 template<typename MembersType>
 MessageTypeSupport<MembersType>::MessageTypeSupport(
   const MembersType * members)
-  : TypeSupport<MembersType>(members)
+: TypeSupport<MembersType>(members)
 {
 }
 

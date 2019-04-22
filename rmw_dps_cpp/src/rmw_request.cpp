@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <cassert>
+#include <utility>
 
 #include "rcutils/logging_macros.h"
 
@@ -77,7 +78,8 @@ rmw_take_request(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(service=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, service, request_header, ros_request, taken);
+    "%s(service=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, service,
+    request_header, ros_request, taken);
 
   assert(service);
   assert(request_header);

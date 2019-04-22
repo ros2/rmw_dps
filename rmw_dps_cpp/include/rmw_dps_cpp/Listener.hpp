@@ -15,19 +15,21 @@
 #ifndef RMW_DPS_CPP__LISTENER_HPP_
 #define RMW_DPS_CPP__LISTENER_HPP_
 
+#include <dps/dps.h>
+
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <utility>
 #include <vector>
 
-#include <dps/dps.h>
-
 #include "rmw_dps_cpp/CborStream.hpp"
 
-struct PublicationDeleter {
-  void operator()(DPS_Publication * pub) { DPS_DestroyPublication(pub); }
+struct PublicationDeleter
+{
+  void operator()(DPS_Publication * pub) {DPS_DestroyPublication(pub);}
 };
 
 typedef std::unique_ptr<DPS_Publication, PublicationDeleter> Publication;
@@ -37,23 +39,25 @@ class Listener
 public:
   using Data = std::pair<Publication, rmw_dps_cpp::cbor::RxStream>;
 
-  explicit Listener()
+  Listener()
   : conditionMutex_(nullptr), conditionVariable_(nullptr)
   {
   }
 
   static void
-  onPublication(DPS_Subscription* sub, const DPS_Publication* pub, uint8_t* payload, size_t len)
+  onPublication(DPS_Subscription * sub, const DPS_Publication * pub, uint8_t * payload, size_t len)
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
       "%s(sub=%p,pub=%p,payload=%p,len=%d)", __FUNCTION__, sub, pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "pub={uuid=%s,sequenceNum=%d}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)), DPS_PublicationGetSequenceNum(pub));
+      "pub={uuid=%s,sequenceNum=%d}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
+      DPS_PublicationGetSequenceNum(pub));
 
-    Listener * listener = (Listener *) DPS_GetSubscriptionData(sub);
-    Data data = std::make_pair(Publication(DPS_CopyPublication(pub)), rmw_dps_cpp::cbor::RxStream(payload, len));
+    Listener * listener = reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+    Data data = std::make_pair(Publication(DPS_CopyPublication(pub)),
+        rmw_dps_cpp::cbor::RxStream(payload, len));
     std::lock_guard<std::mutex> lock(listener->internalMutex_);
 
     if (listener->conditionMutex_) {
@@ -69,17 +73,19 @@ public:
   }
 
   static void
-  onAcknowledgement(DPS_Publication* pub, uint8_t* payload, size_t len)
+  onAcknowledgement(DPS_Publication * pub, uint8_t * payload, size_t len)
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
       "%s(pub=%p,payload=%p,len=%d)", __FUNCTION__, pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "pub={uuid=%s,sequenceNum=%d}", __FUNCTION__, DPS_UUIDToString(DPS_PublicationGetUUID(pub)), DPS_PublicationGetSequenceNum(pub));
+      "pub={uuid=%s,sequenceNum=%d}", __FUNCTION__, DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
+      DPS_PublicationGetSequenceNum(pub));
 
-    Listener * listener = (Listener *) DPS_GetPublicationData(pub);
-    Data data = std::make_pair(Publication(DPS_CopyPublication(pub)), rmw_dps_cpp::cbor::RxStream(payload, len));
+    Listener * listener = reinterpret_cast<Listener *>(DPS_GetPublicationData(pub));
+    Data data = std::make_pair(Publication(DPS_CopyPublication(pub)),
+        rmw_dps_cpp::cbor::RxStream(payload, len));
     std::lock_guard<std::mutex> lock(listener->internalMutex_);
 
     if (listener->conditionMutex_) {

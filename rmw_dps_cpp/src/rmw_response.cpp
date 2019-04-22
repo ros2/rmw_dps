@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <cassert>
+#include <utility>
 
 #include "rcutils/logging_macros.h"
 
@@ -36,7 +37,8 @@ rmw_take_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(client=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, client, request_header, ros_response, taken);
+    "%s(client=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, client,
+    request_header, ros_response, taken);
 
   assert(client);
   assert(request_header);
@@ -66,7 +68,7 @@ rmw_take_response(
     if (uuid) {
       memcpy(request_header->writer_guid, uuid, sizeof(DPS_UUID));
     }
-    request_header->sequence_number = DPS_PublicationGetSequenceNum(pub.get());
+    request_header->sequence_number = DPS_AckGetSequenceNum(pub.get());
 
     *taken = true;
   }
@@ -82,7 +84,8 @@ rmw_send_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(service=%p,request_header=%p,ros_response=%p)", __FUNCTION__, service, request_header, ros_response);
+    "%s(service=%p,request_header=%p,ros_response=%p)", __FUNCTION__, service,
+    request_header, ros_response);
 
   assert(service);
   assert(request_header);

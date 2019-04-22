@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/allocators.h"
@@ -30,11 +32,15 @@ rmw_client_t *
 rmw_create_client(
   const rmw_node_t * node,
   const rosidl_service_type_support_t * type_supports,
-  const char * service_name, const rmw_qos_profile_t * qos_policies)
+  const char * service_name,
+  const rmw_qos_profile_t * qos_policies)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,service_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})", __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability);
+    "%s(node=%p,type_supports=%p,service_name=%s,"
+    "qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})",
+    __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth,
+    qos_policies->reliability, qos_policies->durability);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -94,22 +100,22 @@ rmw_create_client(
   untyped_request_members =
     get_request_ptr(type_support->data, info->typesupport_identifier_);
   untyped_response_members = get_response_ptr(type_support->data,
-    info->typesupport_identifier_);
+      info->typesupport_identifier_);
 
   std::string request_type_name = _create_type_name(untyped_request_members, "srv",
-    info->typesupport_identifier_);
+      info->typesupport_identifier_);
   std::string response_type_name = _create_type_name(untyped_response_members, "srv",
-    info->typesupport_identifier_);
+      info->typesupport_identifier_);
 
   if (!_get_registered_type(impl->node_, request_type_name, &info->request_type_support_)) {
     info->request_type_support_ = _create_request_type_support(type_support->data,
-      info->typesupport_identifier_);
+        info->typesupport_identifier_);
     _register_type(impl->node_, info->request_type_support_, info->typesupport_identifier_);
   }
 
   if (!_get_registered_type(impl->node_, response_type_name, &info->response_type_support_)) {
     info->response_type_support_ = _create_response_type_support(type_support->data,
-      info->typesupport_identifier_);
+        info->typesupport_identifier_);
     _register_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
   }
 
@@ -125,16 +131,9 @@ rmw_create_client(
     goto fail;
   }
   ret = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE, nullptr,
-    Listener::onAcknowledgement);
+      Listener::onAcknowledgement);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize publication");
-    goto fail;
-  }
-  DPS_QoS qos;
-  qos.historyDepth = qos_policies->depth;
-  ret = DPS_PublicationConfigureQoS(info->request_publication_, &qos);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to configure qos");
     goto fail;
   }
 
@@ -169,7 +168,7 @@ fail:
       "rmw_dps_cpp",
       "leaking type support objects because node impl is null");
   }
-  // TODO _delete_typesupport ?
+  // TODO(malsbat): _delete_typesupport ?
   if (info->request_publication_) {
     DPS_DestroyPublication(info->request_publication_);
   }
@@ -223,7 +222,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
       _unregister_type(info->node_, info->response_type_support_,
         info->typesupport_identifier_);
     }
-    // TODO _delete_typesupport ?
+    // TODO(malsbat): _delete_typesupport ?
     if (info->request_publication_) {
       DPS_DestroyPublication(info->request_publication_);
     }

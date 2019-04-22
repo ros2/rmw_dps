@@ -15,11 +15,12 @@
 #ifndef RMW_DPS_CPP__CBORSTREAM_HPP_
 #define RMW_DPS_CPP__CBORSTREAM_HPP_
 
+#include <dps/private/cbor.h>
+
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#include <dps/private/cbor.h>
 
 namespace rmw_dps_cpp
 {
@@ -30,7 +31,7 @@ namespace cbor
 class TxStream
 {
 public:
-  TxStream(size_t hint = 1024)
+  explicit TxStream(size_t hint = 1024)
   {
     ret_ = DPS_OK;
     size_ = 0;
@@ -42,7 +43,7 @@ public:
   {
     DPS_TxBufferFree(&buffer_);
   }
-  TxStream(const TxStream& other)
+  TxStream(const TxStream & other)
   {
     ret_ = other.ret_;
     size_ = other.size_;
@@ -51,7 +52,7 @@ public:
     }
     DPS_TxBufferAppend(&buffer_, other.buffer_.base, DPS_TxBufferUsed(&other.buffer_));
   }
-  TxStream(TxStream&& other)
+  TxStream(TxStream && other)
   {
     ret_ = other.ret_;
     size_ = other.size_;
@@ -61,7 +62,7 @@ public:
     other.size_ = 0;
     DPS_TxBufferClear(&other.buffer_);
   }
-  TxStream& operator=(const TxStream& other)
+  TxStream & operator=(const TxStream & other)
   {
     if (this != &other) {
       DPS_TxBufferFree(&buffer_);
@@ -74,7 +75,7 @@ public:
     }
     return *this;
   }
-  TxStream& operator=(TxStream&& other)
+  TxStream & operator=(TxStream && other)
   {
     if (this != &other) {
       DPS_TxBufferFree(&buffer_);
@@ -90,10 +91,10 @@ public:
     return *this;
   }
 
-  const uint8_t * data() const noexcept { return buffer_.base; }
-  size_t size() const noexcept { return DPS_TxBufferUsed(&buffer_); }
-  DPS_Status status() const { return ret_; }
-  size_t size_needed() const { return size_; }
+  const uint8_t * data() const noexcept {return buffer_.base;}
+  size_t size() const noexcept {return DPS_TxBufferUsed(&buffer_);}
+  DPS_Status status() const {return ret_;}
+  size_t size_needed() const {return size_;}
 
   inline TxStream & operator<<(const uint64_t n)
   {
@@ -103,9 +104,9 @@ public:
     }
     return *this;
   }
-  inline TxStream & operator<<(const uint32_t n) { return *this << (uint64_t)n; }
-  inline TxStream & operator<<(const uint16_t n) { return *this << (uint64_t)n; }
-  inline TxStream & operator<<(const uint8_t n) { return *this << (uint64_t)n; }
+  inline TxStream & operator<<(const uint32_t n) {return *this << (uint64_t)n;}
+  inline TxStream & operator<<(const uint16_t n) {return *this << (uint64_t)n;}
+  inline TxStream & operator<<(const uint8_t n) {return *this << (uint64_t)n;}
 
   inline TxStream & operator<<(const int64_t i)
   {
@@ -115,10 +116,10 @@ public:
     }
     return *this;
   }
-  inline TxStream & operator<<(const int32_t n) { return *this << (int64_t)n; }
-  inline TxStream & operator<<(const int16_t n) { return *this << (int64_t)n; }
-  inline TxStream & operator<<(const int8_t n) { return *this << (int64_t)n; }
-  inline TxStream & operator<<(const char n) { return *this << (int64_t)n; }
+  inline TxStream & operator<<(const int32_t n) {return *this << (int64_t)n;}
+  inline TxStream & operator<<(const int16_t n) {return *this << (int64_t)n;}
+  inline TxStream & operator<<(const int8_t n) {return *this << (int64_t)n;}
+  inline TxStream & operator<<(const char n) {return *this << (int64_t)n;}
 
   inline TxStream & operator<<(const float f)
   {
@@ -216,7 +217,8 @@ private:
   }
 };
 
-class RxStream {
+class RxStream
+{
 public:
   RxStream()
   {
@@ -230,18 +232,18 @@ public:
   {
     copy(data, data + size);
   }
-  RxStream(const RxStream& other)
+  RxStream(const RxStream & other)
   {
     copy(other.buffer_.base, other.buffer_.eod);
   }
-  RxStream(RxStream&& other)
+  RxStream(RxStream && other)
   {
     buffer_.base = other.buffer_.base;
     buffer_.eod = other.buffer_.eod;
     buffer_.rxPos = other.buffer_.rxPos;
     DPS_RxBufferClear(&other.buffer_);
   }
-  RxStream& operator=(const RxStream& other)
+  RxStream & operator=(const RxStream & other)
   {
     if (this != &other) {
       DPS_RxBufferFree(&buffer_);
@@ -249,7 +251,7 @@ public:
     }
     return *this;
   }
-  RxStream& operator=(RxStream&& other)
+  RxStream & operator=(RxStream && other)
   {
     if (this != &other) {
       buffer_.base = other.buffer_.base;
@@ -364,7 +366,7 @@ public:
 
   inline RxStream & operator>>(std::string & s)
   {
-    char* data;
+    char * data;
     size_t size;
     DPS_Status ret = CBOR_DecodeString(&buffer_, &data, &size);
     if (ret != DPS_OK) {

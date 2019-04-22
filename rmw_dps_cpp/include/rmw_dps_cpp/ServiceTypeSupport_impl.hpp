@@ -27,21 +27,21 @@ namespace rmw_dps_cpp
 template<typename MembersType>
 ServiceTypeSupport<MembersType>::ServiceTypeSupport(
   const MembersType * members)
-  : TypeSupport<MembersType>(members)
+: TypeSupport<MembersType>(members)
 {
 }
 
 template<typename ServiceMembersType, typename MessageMembersType>
 RequestTypeSupport<ServiceMembersType, MessageMembersType>::RequestTypeSupport(
   const ServiceMembersType * members)
-  : ServiceTypeSupport<MessageMembersType>(members->request_members_)
+: ServiceTypeSupport<MessageMembersType>(members->request_members_)
 {
 }
 
 template<typename ServiceMembersType, typename MessageMembersType>
 ResponseTypeSupport<ServiceMembersType, MessageMembersType>::ResponseTypeSupport(
   const ServiceMembersType * members)
-  : ServiceTypeSupport<MessageMembersType>(members->response_members_)
+: ServiceTypeSupport<MessageMembersType>(members->response_members_)
 {
 }
 

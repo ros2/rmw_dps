@@ -29,7 +29,7 @@ template<typename MembersType>
 class ServiceTypeSupport : public TypeSupport<MembersType>
 {
 protected:
-  ServiceTypeSupport(const MembersType * members);
+  explicit ServiceTypeSupport(const MembersType * members);
 };
 
 template<typename ServiceMembersType, typename MessageMembersType>

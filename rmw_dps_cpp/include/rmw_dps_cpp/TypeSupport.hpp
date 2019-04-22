@@ -112,7 +112,7 @@ public:
   bool deserializeROSmessage(cbor::RxStream & data, void * ros_message);
 
 protected:
-  TypeSupport(const MembersType * members);
+  explicit TypeSupport(const MembersType * members);
 
   const MembersType * members_;
 

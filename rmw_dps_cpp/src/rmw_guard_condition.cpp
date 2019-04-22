@@ -14,6 +14,7 @@
 
 #include "rcutils/logging_macros.h"
 
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
 #include "rmw_dps_cpp/identifier.hpp"
@@ -22,8 +23,15 @@
 extern "C"
 {
 rmw_guard_condition_t *
-rmw_create_guard_condition()
+rmw_create_guard_condition(rmw_context_t * context)
 {
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    init context,
+    context->implementation_identifier,
+    intel_dps_identifier,
+    return NULL);
+
   rmw_guard_condition_t * guard_condition_handle = new rmw_guard_condition_t;
   guard_condition_handle->implementation_identifier = intel_dps_identifier;
   guard_condition_handle->data = new GuardCondition();

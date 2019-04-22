@@ -28,7 +28,7 @@ rmw_count_publishers(
     "rmw_dps_cpp",
     "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, node, topic_name, count);
 
-  // TODO
+  // TODO(malsbat): implement
   *count = 0;
   return RMW_RET_OK;
 }
@@ -43,7 +43,7 @@ rmw_count_subscribers(
     "rmw_dps_cpp",
     "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, node, topic_name, count);
 
-  // TODO
+  // TODO(malsbat): implement
   *count = 0;
   return RMW_RET_OK;
 }

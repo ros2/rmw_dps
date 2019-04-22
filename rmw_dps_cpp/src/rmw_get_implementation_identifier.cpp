@@ -21,7 +21,7 @@
 extern "C"
 {
 const char *
-rmw_get_implementation_identifier()
+rmw_get_implementation_identifier(void)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",

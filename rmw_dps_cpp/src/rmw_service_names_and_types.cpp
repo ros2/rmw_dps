@@ -30,7 +30,7 @@ rmw_get_service_names_and_types(
     "rmw_dps_cpp",
     __FUNCTION__);
 
-  // TODO
+  // TODO(malsbat): implement
   (void)node;
   (void)allocator;
   (void)service_names_and_types;

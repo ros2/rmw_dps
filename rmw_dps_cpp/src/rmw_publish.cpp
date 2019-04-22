@@ -35,9 +35,10 @@ rmw_publish(
     "rmw_dps_cpp",
     "%s(publisher=%p,ros_message=%p)", __FUNCTION__, publisher, ros_message);
 
-  assert(publisher);
-  assert(ros_message);
   rmw_ret_t returnedValue = RMW_RET_ERROR;
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
 
   if (publisher->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("publisher handle not from this implementation");
@@ -67,12 +68,9 @@ rmw_ret_t
 rmw_publish_serialized_message(
   const rmw_publisher_t * publisher, const rmw_serialized_message_t * serialized_message)
 {
-  auto error_allocator = rcutils_get_default_allocator();
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    publisher, "publisher pointer is null", return RMW_RET_ERROR);
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    serialized_message, "serialized_message pointer is null",
-    return RMW_RET_ERROR);
+    serialized_message, "serialized_message pointer is null", return RMW_RET_ERROR);
 
   if (publisher->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("publisher handle not from this implementation");
@@ -84,7 +82,7 @@ rmw_publish_serialized_message(
     info, "publisher info pointer is null", return RMW_RET_ERROR);
 
   DPS_Status ret = DPS_Publish(
-    info->publication_, (uint8_t *)serialized_message->buffer,
+    info->publication_, reinterpret_cast<uint8_t *>(serialized_message->buffer),
     serialized_message->buffer_length, 0);
   if (ret == DPS_OK) {
     RMW_SET_ERROR_MSG("cannot publish data");

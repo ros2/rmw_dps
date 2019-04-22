@@ -48,51 +48,43 @@ ExternalProject_Add(dps_for_iot
   CONFIGURE_COMMAND ""
   BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/${DEF_FILE}
   BUILD_ALWAYS TRUE
-  INSTALL_COMMAND ""
-  )
+  INSTALL_COMMAND "")
 
 ExternalProject_Get_Property(dps_for_iot SOURCE_DIR)
 
 install(DIRECTORY ${SOURCE_DIR}/build/dist/inc/
   DESTINATION ${INCLUDE_INSTALL_DIR}
-  COMPONENT headers
-  )
+  COMPONENT headers)
 
 if(MSVC)
   install(FILES
           ${SOURCE_DIR}/build/dist/lib/dps_shared.lib
           ${SOURCE_DIR}/build/dist/lib/dps_shared.exp
     DESTINATION ${LIB_INSTALL_DIR}
-    COMPONENT libraries
-    )
+    COMPONENT libraries)
   install(FILES
           ${SOURCE_DIR}/build/dist/lib/dps_shared.dll
     DESTINATION ${BIN_INSTALL_DIR}
-    COMPONENT libraries
-    )
+    COMPONENT libraries)
 else()
   install(DIRECTORY ${SOURCE_DIR}/build/dist/lib/
     DESTINATION ${LIB_INSTALL_DIR}
     USE_SOURCE_PERMISSIONS
-    COMPONENT libraries
-    )
+    COMPONENT libraries)
 endif()
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/dps_for_iot-config.cmake.in
   ${PROJECT_BINARY_DIR}/dps_for_iot-config.cmake
   INSTALL_DESTINATION share/${PROJECT_NAME}/cmake
-  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
-  )
+  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
 write_basic_package_version_file(${PROJECT_BINARY_DIR}/dps_for_iot-config-version.cmake
   VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion
-  )
+  COMPATIBILITY SameMajorVersion)
 install(FILES ${PROJECT_BINARY_DIR}/dps_for_iot-config.cmake
   ${PROJECT_BINARY_DIR}/dps_for_iot-config-version.cmake
   DESTINATION share/${PROJECT_NAME}/cmake
-  COMPONENT cmake
-  )
+  COMPONENT cmake)
 
 install(DIRECTORY cmake
   DESTINATION share/${PROJECT_NAME})

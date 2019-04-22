@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/allocators.h"
@@ -31,11 +33,15 @@ rmw_service_t *
 rmw_create_service(
   const rmw_node_t * node,
   const rosidl_service_type_support_t * type_supports,
-  const char * service_name, const rmw_qos_profile_t * qos_policies)
+  const char * service_name,
+  const rmw_qos_profile_t * qos_policies)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,service_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})", __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability);
+    "%s(node=%p,type_supports=%p,service_name=%s,"
+    "qos_policies={history=%d,depth=%d,reliability=%d,durability=%d})",
+    __FUNCTION__, node, type_supports, service_name, qos_policies->history, qos_policies->depth,
+    qos_policies->reliability, qos_policies->durability);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -175,7 +181,6 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     "rmw_dps_cpp",
     "%s(node=%p,service=%p)", __FUNCTION__, node, service);
 
-
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
     return RMW_RET_ERROR;
@@ -199,7 +204,7 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
 
   if (info) {
     if (info->request_subscription_) {
-        DPS_DestroySubscription(info->request_subscription_);
+      DPS_DestroySubscription(info->request_subscription_);
     }
     delete info->request_listener_;
     if (info->request_type_support_) {

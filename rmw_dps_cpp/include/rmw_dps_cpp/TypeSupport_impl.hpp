@@ -16,6 +16,7 @@
 #define RMW_DPS_CPP__TYPESUPPORT_IMPL_HPP_
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "rmw_dps_cpp/macros.hpp"
@@ -161,7 +162,8 @@ void serialize_field<std::string>(
           CStringHelper::convert_to_std_string(string_field[i]));
       }
     } else {
-      auto & string_sequence_field = *reinterpret_cast<rosidl_generator_c__String__Sequence *>(field);
+      auto & string_sequence_field =
+        *reinterpret_cast<rosidl_generator_c__String__Sequence *>(field);
       for (size_t i = 0; i < string_sequence_field.size; ++i) {
         cpp_string_vector.push_back(
           CStringHelper::convert_to_std_string(string_sequence_field.data[i]));
@@ -179,17 +181,17 @@ size_t get_submessage_sequence_serialize(
   void * & subros_message)
 {
   if (member->array_size_ && !member->is_upper_bound_) {
-      subros_message = field;
-      return member->array_size_;
+    subros_message = field;
+    return member->array_size_;
   } else {
-      subros_message = field;
-      size_t array_size = member->size_function(field);
-      if (member->is_upper_bound_ && array_size > member->array_size_) {
-          throw std::runtime_error("sequence overcomes the maximum length");
-      }
-      // Serialize length
-      ser << (uint32_t)array_size;
-      return array_size;
+    subros_message = field;
+    size_t array_size = member->size_function(field);
+    if (member->is_upper_bound_ && array_size > member->array_size_) {
+      throw std::runtime_error("sequence overcomes the maximum length");
+    }
+    // Serialize length
+    ser << (uint32_t)array_size;
+    return array_size;
   }
 }
 
@@ -201,17 +203,17 @@ size_t get_submessage_sequence_serialize(
   void * & subros_message)
 {
   if (member->array_size_ && !member->is_upper_bound_) {
-      subros_message = &field;
-      return member->array_size_;
+    subros_message = &field;
+    return member->array_size_;
   } else {
-      subros_message = field;
-      size_t array_size = member->size_function(field);
-      if (member->is_upper_bound_ && array_size > member->array_size_) {
-          throw std::runtime_error("sequence overcomes the maximum length");
-      }
-      // Serialize length
-      ser << (uint32_t)array_size;
-      return array_size;
+    subros_message = field;
+    size_t array_size = member->size_function(field);
+    if (member->is_upper_bound_ && array_size > member->array_size_) {
+      throw std::runtime_error("sequence overcomes the maximum length");
+    }
+    // Serialize length
+    ser << (uint32_t)array_size;
+    return array_size;
   }
 }
 
@@ -363,8 +365,11 @@ void deserialize_field<std::string>(
         }
       }
     } else {
-      auto & string_sequence_field = *reinterpret_cast<rosidl_generator_c__String__Sequence *>(field);
-      if (!rosidl_generator_c__String__Sequence__init(&string_sequence_field, cpp_string_vector.size())) {
+      auto & string_sequence_field =
+        *reinterpret_cast<rosidl_generator_c__String__Sequence *>(field);
+      if (!rosidl_generator_c__String__Sequence__init(&string_sequence_field,
+        cpp_string_vector.size()))
+      {
         throw std::runtime_error("unable to initialize rosidl_generator_c__String sequence");
       }
       for (size_t i = 0; i < cpp_string_vector.size(); ++i) {
@@ -519,12 +524,12 @@ bool TypeSupport<MembersType>::serializeROSmessage(
     ser << (uint8_t)0;
   }
   if (ser.status() == DPS_ERR_OVERFLOW) {
-      ser = cbor::TxStream(ser.size_needed());
-      if (members_->member_count_ != 0) {
-          TypeSupport::serializeROSmessage(ser, members_, ros_message);
-      } else {
-          ser << (uint8_t)0;
-      }
+    ser = cbor::TxStream(ser.size_needed());
+    if (members_->member_count_ != 0) {
+      TypeSupport::serializeROSmessage(ser, members_, ros_message);
+    } else {
+      ser << (uint8_t)0;
+    }
   }
   return ser.status() == DPS_OK;
 }

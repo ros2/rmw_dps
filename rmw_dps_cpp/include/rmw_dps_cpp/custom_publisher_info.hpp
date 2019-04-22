@@ -15,10 +15,10 @@
 #ifndef RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
 #define RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
 
+#include <dps/dps.h>
+
 #include <mutex>
 #include <queue>
-
-#include <dps/dps.h>
 
 #include "rmw/rmw.h"
 

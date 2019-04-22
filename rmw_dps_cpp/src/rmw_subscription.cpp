@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/allocators.h"
@@ -29,11 +31,16 @@ rmw_subscription_t *
 rmw_create_subscription(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies, bool ignore_local_publications)
+  const char * topic_name,
+  const rmw_qos_profile_t * qos_policies,
+  bool ignore_local_publications)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,type_supports=%p,topic_name=%s,qos_policies={history=%d,depth=%d,reliability=%d,durability=%d},ignore_local_publications=%d)", __FUNCTION__, node, type_supports, topic_name, qos_policies->history, qos_policies->depth, qos_policies->reliability, qos_policies->durability, ignore_local_publications);
+    "%s(node=%p,type_supports=%p,topic_name=%s,"
+    "qos_policies={history=%d,depth=%d,reliability=%d,durability=%d},ignore_local_publications=%d)",
+    __FUNCTION__, node, type_supports, topic_name, qos_policies->history, qos_policies->depth,
+    qos_policies->reliability, qos_policies->durability, ignore_local_publications);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -146,6 +153,19 @@ fail:
 }
 
 rmw_ret_t
+rmw_subscription_count_matched_publishers(
+  const rmw_subscription_t * subscription,
+  size_t * publisher_count)
+{
+  // TODO(malsbat): implement
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s(subscription=%p,publisher_count=%p)", __FUNCTION__, subscription, publisher_count);
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
 rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 {
   RCUTILS_LOG_DEBUG_NAMED(
@@ -176,7 +196,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
   if (info) {
     if (info->subscription_) {
-        DPS_DestroySubscription(info->subscription_);
+      DPS_DestroySubscription(info->subscription_);
     }
     delete info->listener_;
     if (info->type_support_) {

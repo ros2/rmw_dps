@@ -15,16 +15,16 @@
 #ifndef RMW_DPS_CPP__CUSTOM_SERVICE_INFO_HPP_
 #define RMW_DPS_CPP__CUSTOM_SERVICE_INFO_HPP_
 
-#include <map>
-
 #include <dps/dps.h>
+
+#include <map>
 
 #include "rmw_dps_cpp/Listener.hpp"
 
 inline bool
 operator<(const rmw_request_id_t & lhs, const rmw_request_id_t & rhs)
 {
-    return memcmp(&lhs, &rhs, sizeof(rmw_request_id_t)) < 0;
+  return memcmp(&lhs, &rhs, sizeof(rmw_request_id_t)) < 0;
 }
 
 typedef struct CustomServiceInfo

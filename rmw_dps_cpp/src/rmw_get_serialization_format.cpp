@@ -19,7 +19,7 @@
 extern "C"
 {
 const char *
-rmw_get_serialization_format()
+rmw_get_serialization_format(void)
 {
   return intel_dps_serialization_format;
 }

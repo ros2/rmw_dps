@@ -29,7 +29,8 @@ rmw_serialize(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(ros_message=%p,type_support=%p,serialized_message=%p)", __FUNCTION__, ros_message, type_support, serialized_message);
+    "%s(ros_message=%p,type_support=%p,serialized_message=%p)", __FUNCTION__, ros_message,
+    type_support, serialized_message);
 
   const rosidl_message_type_support_t * ts = get_message_typesupport_handle(
     type_support, rosidl_typesupport_introspection_c__identifier);
@@ -68,7 +69,8 @@ rmw_deserialize(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(serialized_message=%p,type_support=%p,ros_message=%p)", __FUNCTION__, serialized_message, type_support, ros_message);
+    "%s(serialized_message=%p,type_support=%p,ros_message=%p)", __FUNCTION__, serialized_message,
+    type_support, ros_message);
 
   const rosidl_message_type_support_t * ts = get_message_typesupport_handle(
     type_support, rosidl_typesupport_introspection_c__identifier);
@@ -83,7 +85,7 @@ rmw_deserialize(
 
   auto tss = _create_message_type_support(ts->data, ts->typesupport_identifier);
   rmw_dps_cpp::cbor::RxStream buffer(
-    (const uint8_t*)serialized_message->buffer, serialized_message->buffer_length);
+    (const uint8_t *)serialized_message->buffer, serialized_message->buffer_length);
 
   auto ret = _deserialize_ros_message(buffer, ros_message, tss, ts->typesupport_identifier);
   _delete_typesupport(tss, ts->typesupport_identifier);

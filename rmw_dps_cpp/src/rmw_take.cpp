@@ -56,13 +56,14 @@ _take(
   }
 
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
-  assert(info);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
 
   rmw_dps_cpp::cbor::RxStream buffer;
   Publication pub;
 
   if (info->listener_->takeNextData(buffer, pub)) {
-    _deserialize_ros_message(buffer, ros_message, info->type_support_, info->typesupport_identifier_);
+    _deserialize_ros_message(buffer, ros_message, info->type_support_,
+      info->typesupport_identifier_);
     if (message_info) {
       _assign_message_info(message_info, pub.get());
     }
@@ -98,7 +99,8 @@ rmw_take_with_info(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, ros_message, taken, message_info);
+    "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription,
+    ros_message, taken, message_info);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -127,7 +129,7 @@ _take_serialized_message(
   }
 
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
-  assert(info);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
 
   rmw_dps_cpp::cbor::RxStream buffer;
   Publication pub;
@@ -137,7 +139,7 @@ _take_serialized_message(
     if (serialized_message->buffer_capacity < buffer_size) {
       auto ret = rmw_serialized_message_resize(serialized_message, buffer_size);
       if (ret != RMW_RET_OK) {
-	return ret;  // Error message already set
+        return ret;  // Error message already set
       }
     }
     serialized_message->buffer_length = buffer_size;
@@ -160,7 +162,8 @@ rmw_take_serialized_message(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription, serialized_message, taken);
+    "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription,
+    serialized_message, taken);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -181,7 +184,8 @@ rmw_take_serialized_message_with_info(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription, serialized_message, taken, message_info);
+    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__,
+    subscription, serialized_message, taken, message_info);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
