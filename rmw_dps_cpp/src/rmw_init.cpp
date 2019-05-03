@@ -119,4 +119,18 @@ rmw_shutdown(rmw_context_t * context)
   *context = rmw_get_zero_initialized_context();
   return RMW_RET_OK;
 }
+
+rmw_ret_t
+rmw_context_fini(rmw_context_t * context)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    context,
+    context->implementation_identifier,
+    intel_dps_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  *context = rmw_get_zero_initialized_context();
+  return RMW_RET_OK;
+}
+
 }  // extern "C"
