@@ -265,4 +265,23 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 
   return RMW_RET_OK;
 }
+
+rmw_ret_t
+rmw_publisher_get_actual_qos(
+  const rmw_publisher_t * publisher,
+  rmw_qos_profile_t * qos)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+
+  /* Set to best-effort & volatile since QoS features are not supported by DPS at the moment. */
+  qos->history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  qos->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  qos->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  qos->depth = 1;
+
+  return RMW_RET_OK;
+}
+
+
 }  // extern "C"

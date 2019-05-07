@@ -25,7 +25,7 @@
 extern "C"
 {
 rmw_wait_set_t *
-rmw_create_wait_set(size_t max_conditions)
+rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
