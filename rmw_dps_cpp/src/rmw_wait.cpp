@@ -87,6 +87,7 @@ rmw_wait(
   const rmw_time_t * wait_timeout)
 {
   (void)events;
+
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscriptions=%p,guard_conditions=%p,services=%p,clients=%p,wait_set=%p,wait_timeout=%p)",

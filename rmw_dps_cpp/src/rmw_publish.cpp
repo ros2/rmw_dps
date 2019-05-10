@@ -32,7 +32,7 @@ rmw_publish(
   const void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
-  (void)allocation;
+  (void)allocation;	
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(publisher=%p,ros_message=%p)", __FUNCTION__, publisher, ros_message);
@@ -68,8 +68,8 @@ rmw_publish(
 
 rmw_ret_t
 rmw_publish_serialized_message(
-  const rmw_publisher_t * publisher,
-  const rmw_serialized_message_t * serialized_message,
+  const rmw_publisher_t * publisher, 
+  const rmw_serialized_message_t * serialized_message, 
   rmw_publisher_allocation_t * allocation)
 {
   (void)allocation;

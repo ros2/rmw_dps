@@ -234,6 +234,14 @@ rmw_destroy_node(rmw_node_t * node)
   return result_ret;
 }
 
+rmw_ret_t
+rmw_node_assert_liveliness(const rmw_node_t * node)
+{
+  (void)node;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
 const rmw_guard_condition_t *
 rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 {
