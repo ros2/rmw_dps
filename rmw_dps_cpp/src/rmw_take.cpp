@@ -74,8 +74,13 @@ _take(
 }
 
 rmw_ret_t
-rmw_take(const rmw_subscription_t * subscription, void * ros_message, bool * taken)
+rmw_take(
+  const rmw_subscription_t * subscription,
+  void * ros_message,
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p)", __FUNCTION__, subscription, ros_message, taken);
@@ -95,8 +100,10 @@ rmw_take_with_info(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription,
@@ -158,8 +165,10 @@ rmw_ret_t
 rmw_take_serialized_message(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
-  bool * taken)
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription,
@@ -180,8 +189,10 @@ rmw_take_serialized_message_with_info(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__,

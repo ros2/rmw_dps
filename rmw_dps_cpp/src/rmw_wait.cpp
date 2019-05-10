@@ -82,9 +82,11 @@ rmw_wait(
   rmw_guard_conditions_t * guard_conditions,
   rmw_services_t * services,
   rmw_clients_t * clients,
+  rmw_events_t * events,
   rmw_wait_set_t * wait_set,
   const rmw_time_t * wait_timeout)
 {
+  (void)events;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscriptions=%p,guard_conditions=%p,services=%p,clients=%p,wait_set=%p,wait_timeout=%p)",

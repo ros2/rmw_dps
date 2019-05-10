@@ -29,8 +29,10 @@ extern "C"
 rmw_ret_t
 rmw_publish(
   const rmw_publisher_t * publisher,
-  const void * ros_message)
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation)
 {
+  (void)allocation;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(publisher=%p,ros_message=%p)", __FUNCTION__, publisher, ros_message);
@@ -66,8 +68,11 @@ rmw_publish(
 
 rmw_ret_t
 rmw_publish_serialized_message(
-  const rmw_publisher_t * publisher, const rmw_serialized_message_t * serialized_message)
+  const rmw_publisher_t * publisher,
+  const rmw_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation)
 {
+  (void)allocation;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     serialized_message, "serialized_message pointer is null", return RMW_RET_ERROR);
