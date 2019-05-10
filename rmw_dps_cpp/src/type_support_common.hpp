@@ -15,6 +15,7 @@
 #ifndef TYPE_SUPPORT_COMMON_HPP_
 #define TYPE_SUPPORT_COMMON_HPP_
 
+#include <sstream>
 #include <string>
 
 #include "rmw/error_handling.h"
@@ -67,8 +68,15 @@ _create_type_name(
     RMW_SET_ERROR_MSG("members handle is null");
     return "";
   }
-  return
-    std::string(members->message_namespace_) + "::" + sep + "::dps_::" + members->message_name_ + "_";
+
+  std::ostringstream ss;
+  std::string message_namespace(members->message_namespace_);
+  std::string message_name(members->message_name_);
+  if (!message_namespace.empty()) {
+    ss << message_namespace << "::";
+  }
+  ss << "dds_::" << message_name << "_";
+  return ss.str();
 }
 
 ROSIDL_TYPESUPPORT_INTROSPECTION_CPP_LOCAL
