@@ -68,7 +68,7 @@ _create_type_name(
     return "";
   }
   return
-    std::string(members->package_name_) + "::" + sep + "::dps_::" + members->message_name_ + "_";
+    std::string(members->message_namespace_) + "::" + sep + "::dps_::" + members->message_name_ + "_";
 }
 
 ROSIDL_TYPESUPPORT_INTROSPECTION_CPP_LOCAL
