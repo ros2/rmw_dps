@@ -76,8 +76,8 @@ _take(
 
 rmw_ret_t
 rmw_take(
-  const rmw_subscription_t * subscription, 
-  void * ros_message, 
+  const rmw_subscription_t * subscription,
+  void * ros_message,
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {

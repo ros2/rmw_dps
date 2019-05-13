@@ -313,6 +313,4 @@ rmw_publisher_get_actual_qos(
 
   return RMW_RET_OK;
 }
-
-
 }  // extern "C"

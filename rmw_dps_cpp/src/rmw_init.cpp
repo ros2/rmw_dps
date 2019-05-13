@@ -132,5 +132,4 @@ rmw_context_fini(rmw_context_t * context)
   *context = rmw_get_zero_initialized_context();
   return RMW_RET_OK;
 }
-
 }  // extern "C"
