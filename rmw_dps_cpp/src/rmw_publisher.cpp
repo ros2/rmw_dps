@@ -91,7 +91,7 @@ rmw_fini_publisher_allocation(rmw_publisher_allocation_t * allocation)
   RMW_SET_ERROR_MSG("unimplemented");
   return RMW_RET_ERROR;
 }
-		
+
 rmw_publisher_t *
 rmw_create_publisher(
   const rmw_node_t * node,
@@ -159,7 +159,7 @@ rmw_create_publisher(
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
-    type_support->data, "msg", info->typesupport_identifier_);
+    type_support->data, info->typesupport_identifier_);
   if (!_get_registered_type(impl->node_, type_name, &info->type_support_)) {
     info->type_support_ = _create_message_type_support(type_support->data,
         info->typesupport_identifier_);

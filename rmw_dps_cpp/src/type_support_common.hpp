@@ -60,8 +60,7 @@ template<typename MembersType>
 ROSIDL_TYPESUPPORT_INTROSPECTION_CPP_LOCAL
 inline std::string
 _create_type_name(
-  const void * untyped_members,
-  const std::string & sep)
+  const void * untyped_members)
 {
   auto members = static_cast<const MembersType *>(untyped_members);
   if (!members) {
@@ -75,7 +74,7 @@ _create_type_name(
   if (!message_namespace.empty()) {
     ss << message_namespace << "::";
   }
-  ss << "dds_::" << message_name << "_";
+  ss << "dps_::" << message_name << "_";
   return ss.str();
 }
 
@@ -83,15 +82,14 @@ ROSIDL_TYPESUPPORT_INTROSPECTION_CPP_LOCAL
 inline std::string
 _create_type_name(
   const void * untyped_members,
-  const std::string & sep,
   const char * typesupport)
 {
   if (using_introspection_c_typesupport(typesupport)) {
     return _create_type_name<rosidl_typesupport_introspection_c__MessageMembers>(
-      untyped_members, sep);
+      untyped_members);
   } else if (using_introspection_cpp_typesupport(typesupport)) {
     return _create_type_name<rosidl_typesupport_introspection_cpp::MessageMembers>(
-      untyped_members, sep);
+      untyped_members);
   }
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return "";
