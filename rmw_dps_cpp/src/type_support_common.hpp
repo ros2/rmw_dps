@@ -15,6 +15,7 @@
 #ifndef TYPE_SUPPORT_COMMON_HPP_
 #define TYPE_SUPPORT_COMMON_HPP_
 
+#include <sstream>
 #include <string>
 
 #include "rmw/error_handling.h"
@@ -59,31 +60,36 @@ template<typename MembersType>
 ROSIDL_TYPESUPPORT_INTROSPECTION_CPP_LOCAL
 inline std::string
 _create_type_name(
-  const void * untyped_members,
-  const std::string & sep)
+  const void * untyped_members)
 {
   auto members = static_cast<const MembersType *>(untyped_members);
   if (!members) {
     RMW_SET_ERROR_MSG("members handle is null");
     return "";
   }
-  return
-    std::string(members->package_name_) + "::" + sep + "::dps_::" + members->message_name_ + "_";
+
+  std::ostringstream ss;
+  std::string message_namespace(members->message_namespace_);
+  std::string message_name(members->message_name_);
+  if (!message_namespace.empty()) {
+    ss << message_namespace << "::";
+  }
+  ss << "dps_::" << message_name << "_";
+  return ss.str();
 }
 
 ROSIDL_TYPESUPPORT_INTROSPECTION_CPP_LOCAL
 inline std::string
 _create_type_name(
   const void * untyped_members,
-  const std::string & sep,
   const char * typesupport)
 {
   if (using_introspection_c_typesupport(typesupport)) {
     return _create_type_name<rosidl_typesupport_introspection_c__MessageMembers>(
-      untyped_members, sep);
+      untyped_members);
   } else if (using_introspection_cpp_typesupport(typesupport)) {
     return _create_type_name<rosidl_typesupport_introspection_cpp::MessageMembers>(
-      untyped_members, sep);
+      untyped_members);
   }
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return "";

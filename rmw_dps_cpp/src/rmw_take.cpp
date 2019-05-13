@@ -19,6 +19,7 @@
 #include "rmw/error_handling.h"
 #include "rmw/serialized_message.h"
 #include "rmw/rmw.h"
+#include "rmw/event.h"
 
 #include "rmw_dps_cpp/CborStream.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
@@ -74,8 +75,14 @@ _take(
 }
 
 rmw_ret_t
-rmw_take(const rmw_subscription_t * subscription, void * ros_message, bool * taken)
+rmw_take(
+  const rmw_subscription_t * subscription,
+  void * ros_message,
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
+
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p)", __FUNCTION__, subscription, ros_message, taken);
@@ -95,8 +102,11 @@ rmw_take_with_info(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
+
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p)", __FUNCTION__, subscription,
@@ -158,8 +168,11 @@ rmw_ret_t
 rmw_take_serialized_message(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
-  bool * taken)
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
+
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p)", __FUNCTION__, subscription,
@@ -180,8 +193,11 @@ rmw_take_serialized_message_with_info(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void)allocation;
+
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p)", __FUNCTION__,
@@ -197,5 +213,18 @@ rmw_take_serialized_message_with_info(
     message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take_serialized_message(subscription, serialized_message, taken, message_info);
+}
+
+rmw_ret_t
+rmw_take_event(
+  const rmw_event_t * event_handle,
+  void * event_info,
+  bool * taken)
+{
+  (void)event_handle;
+  (void)event_info;
+  (void)taken;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
 }
 }  // extern "C"

@@ -69,6 +69,29 @@ const char * qos_durability_string(rmw_qos_durability_policy_t durability)
 
 extern "C"
 {
+rmw_ret_t
+rmw_init_publisher_allocation(
+  const rosidl_message_type_support_t * type_support,
+  const rosidl_message_bounds_t * message_bounds,
+  rmw_publisher_allocation_t * allocation)
+{
+  // Unused in current implementation.
+  (void) type_support;
+  (void) message_bounds;
+  (void) allocation;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
+rmw_ret_t
+rmw_fini_publisher_allocation(rmw_publisher_allocation_t * allocation)
+{
+  // Unused in current implementation.
+  (void) allocation;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
 rmw_publisher_t *
 rmw_create_publisher(
   const rmw_node_t * node,
@@ -136,7 +159,7 @@ rmw_create_publisher(
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
-    type_support->data, "msg", info->typesupport_identifier_);
+    type_support->data, info->typesupport_identifier_);
   if (!_get_registered_type(impl->node_, type_name, &info->type_support_)) {
     info->type_support_ = _create_message_type_support(type_support->data,
         info->typesupport_identifier_);
@@ -267,6 +290,14 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 }
 
 rmw_ret_t
+rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
+{
+  (void)publisher;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
+rmw_ret_t
 rmw_publisher_get_actual_qos(
   const rmw_publisher_t * publisher,
   rmw_qos_profile_t * qos)
@@ -282,6 +313,4 @@ rmw_publisher_get_actual_qos(
 
   return RMW_RET_OK;
 }
-
-
 }  // extern "C"
