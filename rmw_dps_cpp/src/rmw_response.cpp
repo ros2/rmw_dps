@@ -37,8 +37,8 @@ rmw_take_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(client=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, client,
-    request_header, ros_response, taken);
+    "%s(client=%p,request_header=%p,ros_request=%p,taken=%p)", __FUNCTION__, (void*)client,
+    (void*)request_header, ros_response, (void*)taken);
 
   assert(client);
   assert(request_header);
@@ -84,8 +84,8 @@ rmw_send_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(service=%p,request_header=%p,ros_response=%p)", __FUNCTION__, service,
-    request_header, ros_response);
+    "%s(service=%p,request_header=%p,ros_response=%p)", __FUNCTION__, (void*)service,
+    (void*)request_header, ros_response);
 
   assert(service);
   assert(request_header);

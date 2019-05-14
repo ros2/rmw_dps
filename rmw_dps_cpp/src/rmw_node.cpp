@@ -163,7 +163,7 @@ rmw_create_node(
   // TODO(malsbat): implement RMW_SECURITY_ENFORCEMENT_PERMISSIVE, ENFORCE
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(name=%s,namespace_=%s,domain_id=%d,"
+    "%s(name=%s,namespace_=%s,domain_id=%lu,"
     "security_options={enforce_security=%d,security_root_path=%s})",
     __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security,
     security_options->security_root_path);
@@ -192,7 +192,7 @@ rmw_destroy_node(rmw_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p)", __FUNCTION__, node);
+    "%s(node=%p)", __FUNCTION__, (void*)node);
 
   rmw_ret_t result_ret = RMW_RET_OK;
   if (!node) {
@@ -247,7 +247,7 @@ rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p)", __FUNCTION__, node);
+    "%s(node=%p)", __FUNCTION__, (void*)node);
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {

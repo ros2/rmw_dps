@@ -49,7 +49,7 @@ public:
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(sub=%p,pub=%p,payload=%p,len=%d)", __FUNCTION__, sub, pub, payload, len);
+      "%s(sub=%p,pub=%p,payload=%p,len=%lu)", __FUNCTION__, (void*)sub, (void*)pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
       "pub={uuid=%s,sequenceNum=%d}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
@@ -77,10 +77,10 @@ public:
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(pub=%p,payload=%p,len=%d)", __FUNCTION__, pub, payload, len);
+      "%s(pub=%p,payload=%p,len=%lu)", __FUNCTION__, (void*)pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "pub={uuid=%s,sequenceNum=%d}", __FUNCTION__, DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
+      "pub={uuid=%s,sequenceNum=%u}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
       DPS_PublicationGetSequenceNum(pub));
 
     Listener * listener = reinterpret_cast<Listener *>(DPS_GetPublicationData(pub));

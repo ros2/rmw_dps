@@ -102,10 +102,10 @@ rmw_create_publisher(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%s,depth=%d,reliability=%s,durability=%s})",
-    __FUNCTION__, node, type_supports, topic_name, qos_history_string(qos_policies->history),
-    qos_policies->depth, qos_reliability_string(qos_policies->reliability),
-    qos_durability_string(qos_policies->durability));
+    "qos_policies={history=%s,depth=%lu,reliability=%s,durability=%s})",
+    __FUNCTION__, (void*)node, (void*)type_supports, topic_name,
+    qos_history_string(qos_policies->history), qos_policies->depth,
+    qos_reliability_string(qos_policies->reliability), qos_durability_string(qos_policies->durability));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -230,7 +230,8 @@ rmw_publisher_count_matched_subscriptions(
   // TODO(malsbat): implement
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(publisher=%p,subscription_count=%p)", __FUNCTION__, publisher, subscription_count);
+    "%s(publisher=%p,subscription_count=%p)", __FUNCTION__, (void*)publisher,
+    (void*)subscription_count);
 
   RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(subscription_count, RMW_RET_INVALID_ARGUMENT);
@@ -243,7 +244,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,publisher=%p)", __FUNCTION__, node, publisher);
+    "%s(node=%p,publisher=%p)", __FUNCTION__, (void*)node, (void*)publisher);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

@@ -27,7 +27,7 @@ rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(publisher=%p,gid=%p)", __FUNCTION__, publisher, gid);
+    "%s(publisher=%p,gid=%p)", __FUNCTION__, (void*)publisher, (void*)gid);
 
   if (!publisher) {
     RMW_SET_ERROR_MSG("publisher is null");

@@ -61,9 +61,9 @@ rmw_create_subscription(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%d,depth=%d,reliability=%d,durability=%d},ignore_local_publications=%d)",
-    __FUNCTION__, node, type_supports, topic_name, qos_policies->history, qos_policies->depth,
-    qos_policies->reliability, qos_policies->durability, ignore_local_publications);
+    "qos_policies={history=%d,depth=%lu,reliability=%d,durability=%d},ignore_local_publications=%d)",
+    __FUNCTION__, (void*)node, (void*)type_supports, topic_name, qos_policies->history,
+    qos_policies->depth, qos_policies->reliability, qos_policies->durability, ignore_local_publications);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -183,7 +183,7 @@ rmw_subscription_count_matched_publishers(
   // TODO(malsbat): implement
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,publisher_count=%p)", __FUNCTION__, subscription, publisher_count);
+    "%s(subscription=%p,publisher_count=%p)", __FUNCTION__, (void*)subscription, (void*)publisher_count);
 
   return RMW_RET_OK;
 }
@@ -193,7 +193,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,subscription=%p)", __FUNCTION__, node, subscription);
+    "%s(node=%p,subscription=%p)", __FUNCTION__, (void*)node, (void*)subscription);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
