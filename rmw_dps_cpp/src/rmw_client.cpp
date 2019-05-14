@@ -24,6 +24,7 @@
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "client_service_common.hpp"
+#include "names_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"
@@ -85,8 +86,8 @@ rmw_create_client(
   }
 
   CustomClientInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &service_name[1];
+  std::string dps_topic = get_dps_topic_name(impl->domain_id_, service_name);
+  const char * topic = dps_topic.c_str();
   rmw_client_t * rmw_client = nullptr;
   DPS_Status ret;
 

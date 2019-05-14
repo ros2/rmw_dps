@@ -23,6 +23,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_publisher_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "names_common.hpp"
 #include "type_support_common.hpp"
 
 const char * qos_history_string(rmw_qos_history_policy_t history)
@@ -150,8 +151,8 @@ rmw_create_publisher(
   }
 
   CustomPublisherInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &topic_name[1];
+  std::string dps_topic = get_dps_topic_name(impl->domain_id_, topic_name);
+  const char * topic = dps_topic.c_str();
   rmw_publisher_t * rmw_publisher = nullptr;
   DPS_Status ret;
 

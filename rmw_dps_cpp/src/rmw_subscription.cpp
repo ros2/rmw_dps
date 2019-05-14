@@ -23,6 +23,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "names_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"
@@ -104,8 +105,8 @@ rmw_create_subscription(
 
   (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &topic_name[1];
+  std::string dps_topic = get_dps_topic_name(impl->domain_id_, topic_name);
+  const char * topic = dps_topic.c_str();
   rmw_subscription_t * rmw_subscription = nullptr;
   DPS_Status ret;
 

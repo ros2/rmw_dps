@@ -44,6 +44,7 @@ include_directories(
 add_library(rmw_dps_cpp
   src/client_service_common.cpp
   src/identifier.cpp
+  src/names_common.cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
