@@ -230,7 +230,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
     const auto member = members->members_ + i;
     void * field = const_cast<char *>(static_cast<const char *>(ros_message)) + member->offset_;
     switch (member->type_id_) {
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOL:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOLEAN:
         if (!member->is_array_) {
           // don't cast to bool here because if the bool is
           // uninitialized the random value can't be deserialized
@@ -239,7 +239,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
           serialize_field<bool>(member, field, ser);
         }
         break;
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BYTE:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_OCTET:
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8:
         serialize_field<uint8_t>(member, field, ser);
         break;
@@ -247,10 +247,10 @@ bool TypeSupport<MembersType>::serializeROSmessage(
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8:
         serialize_field<char>(member, field, ser);
         break;
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT32:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT:
         serialize_field<float>(member, field, ser);
         break;
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT64:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE:
         serialize_field<double>(member, field, ser);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16:
@@ -446,10 +446,10 @@ bool TypeSupport<MembersType>::deserializeROSmessage(
     const auto * member = members->members_ + i;
     void * field = static_cast<char *>(ros_message) + member->offset_;
     switch (member->type_id_) {
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOL:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOLEAN:
         deserialize_field<bool>(member, field, deser, call_new);
         break;
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BYTE:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_OCTET:
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8:
         deserialize_field<uint8_t>(member, field, deser, call_new);
         break;
@@ -457,10 +457,10 @@ bool TypeSupport<MembersType>::deserializeROSmessage(
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8:
         deserialize_field<char>(member, field, deser, call_new);
         break;
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT32:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT:
         deserialize_field<float>(member, field, deser, call_new);
         break;
-      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT64:
+      case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE:
         deserialize_field<double>(member, field, deser, call_new);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16:
