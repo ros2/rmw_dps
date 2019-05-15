@@ -1,0 +1,14 @@
+sudo: required
+language: generic
+services:
+    - docker
+before_install:
+    - docker pull osrf/ros2:nightly 
+    - docker run -dit -v "${TRAVIS_BUILD_DIR}:/shared"  --network host --name=osrf_ros2_nightly --privileged osrf/ros2:nightly /bin/bash
+    - docker exec osrf_ros2_nightly /bin/bash -c "git config --global user.name Ragha Prasad"
+    - docker exec osrf_ros2_nightly /bin/bash -c "git config --global user.email prasadra@amazon.com"
+script:
+    - docker exec osrf_ros2_nightly /bin/bash -c "apt-get update && apt-get install -y scons python-dev"
+    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon build --packages-up-to rmw_dps_cpp"
+    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test --packages-select rmw_dps_cpp"
+    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test-result"
