@@ -17,6 +17,8 @@
 
 #include <rosidl_generator_c/string.h>
 #include <rosidl_generator_c/string_functions.h>
+#include <rosidl_generator_c/u16string.h>
+#include <rosidl_generator_c/u16string_functions.h>
 
 #include <cassert>
 #include <string>
@@ -98,6 +100,69 @@ struct StringHelper<rosidl_typesupport_introspection_cpp::MessageMembers>
     std::string & str = *(std::string *)field;
     if (call_new) {
       new(&str) std::string;
+    }
+    deser >> str;
+  }
+};
+
+// Helper class that uses template specialization to read/write u16string types
+template<typename MembersType>
+struct U16StringHelper;
+
+// For C introspection typesupport we create intermediate instances of std::u16string
+template<>
+struct U16StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
+{
+  using type = rosidl_generator_c__U16String;
+
+  static std::u16string convert_to_std_u16string(void * data)
+  {
+    auto c_u16string = static_cast<rosidl_generator_c__U16String *>(data);
+    if (!c_u16string) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_dps_cpp",
+        "Failed to cast data as rosidl_generator_c__U16String");
+      return u"";
+    }
+    if (!c_u16string->data) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_dps_cpp",
+        "rosidl_generator_c_U16String had invalid data");
+      return u"";
+    }
+    return std::u16string(reinterpret_cast<char16_t *>(c_u16string->data));
+  }
+
+  static std::u16string convert_to_std_u16string(rosidl_generator_c__U16String & data)
+  {
+    return std::u16string(reinterpret_cast<char16_t *>(data.data));
+  }
+
+  static void assign(cbor::RxStream & deser, void * field, bool)
+  {
+    std::u16string str;
+    deser >> str;
+    rosidl_generator_c__U16String * c_str = static_cast<rosidl_generator_c__U16String *>(field);
+    rosidl_generator_c__U16String__assign(c_str, reinterpret_cast<const uint16_t *>(str.c_str()));
+  }
+};
+
+// For C++ introspection typesupport we just reuse the same std::u16string transparently.
+template<>
+struct U16StringHelper<rosidl_typesupport_introspection_cpp::MessageMembers>
+{
+  using type = std::u16string;
+
+  static std::u16string & convert_to_std_u16string(void * data)
+  {
+    return *(static_cast<std::u16string *>(data));
+  }
+
+  static void assign(cbor::RxStream & deser, void * field, bool call_new)
+  {
+    std::u16string & str = *(std::u16string *)field;
+    if (call_new) {
+      new(&str) std::u16string;
     }
     deser >> str;
   }

@@ -147,6 +147,18 @@ public:
     return *this;
   }
 
+  inline TxStream & operator<<(const std::u16string s)
+  {
+    size_ += CBOR_SIZEOF_ARRAY(s.size());
+    if (ret_ == DPS_OK) {
+      ret_ = CBOR_EncodeArray(&buffer_, s.size());
+    }
+    for (size_t i = 0; i < s.size(); ++i) {
+      *this << s[i];
+    }
+    return *this;
+  }
+
   template<typename T>
   inline TxStream & operator<<(const std::vector<T> v)
   {
@@ -295,6 +307,16 @@ public:
     }
     return *this;
   }
+  inline RxStream & operator>>(char16_t & c)
+  {
+    uint16_t n;
+    DPS_Status ret = CBOR_DecodeUint16(&buffer_, &n);
+    if (ret != DPS_OK) {
+      throw std::runtime_error("failed to deserialize char16_t");
+    }
+    c = n;
+    return *this;
+  }
   inline RxStream & operator>>(uint8_t & n)
   {
     DPS_Status ret = CBOR_DecodeUint8(&buffer_, &n);
@@ -376,6 +398,20 @@ public:
       s = std::string();
     } else {
       s = std::string(data, size);
+    }
+    return *this;
+  }
+
+  inline RxStream & operator>>(std::u16string & s)
+  {
+    size_t size;
+    DPS_Status ret = CBOR_DecodeArray(&buffer_, &size);
+    if (ret != DPS_OK) {
+      throw std::runtime_error("failed to deserialize std::vector<>");
+    }
+    s.resize(size);
+    for (size_t i = 0; i < size; ++i) {
+      *this >> s[i];
     }
     return *this;
   }
