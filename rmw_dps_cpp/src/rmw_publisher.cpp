@@ -102,7 +102,7 @@ rmw_create_publisher(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%s,depth=%lu,reliability=%s,durability=%s})",
+    "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s})",
     __FUNCTION__, (void*)node, (void*)type_supports, topic_name,
     qos_history_string(qos_policies->history), qos_policies->depth,
     qos_reliability_string(qos_policies->reliability), qos_durability_string(qos_policies->durability));

@@ -38,7 +38,7 @@ rmw_create_client(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,service_name=%s,"
-    "qos_policies={history=%d,depth=%lu,reliability=%d,durability=%d})",
+    "qos_policies={history=%d,depth=%zu,reliability=%d,durability=%d})",
     __FUNCTION__, (void*)node, (void*)type_supports, service_name, qos_policies->history,
     qos_policies->depth, qos_policies->reliability, qos_policies->durability);
 

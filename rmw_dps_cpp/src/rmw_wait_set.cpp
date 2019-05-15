@@ -29,7 +29,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(context=%p,max_conditions=%lu)", __FUNCTION__, (void*)context, max_conditions);
+    "%s(context=%p,max_conditions=%zu)", __FUNCTION__, (void*)context, max_conditions);
 
   (void)max_conditions;
   rmw_wait_set_t * wait_set = rmw_wait_set_allocate();

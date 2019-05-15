@@ -163,7 +163,7 @@ rmw_create_node(
   // TODO(malsbat): implement RMW_SECURITY_ENFORCEMENT_PERMISSIVE, ENFORCE
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(name=%s,namespace_=%s,domain_id=%lu,"
+    "%s(name=%s,namespace_=%s,domain_id=%zu,"
     "security_options={enforce_security=%d,security_root_path=%s})",
     __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security,
     security_options->security_root_path);
