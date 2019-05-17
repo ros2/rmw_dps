@@ -90,7 +90,7 @@ rmw_publish_serialized_message(
   DPS_Status ret = DPS_Publish(
     info->publication_, reinterpret_cast<uint8_t *>(serialized_message->buffer),
     serialized_message->buffer_length, 0);
-  if (ret == DPS_OK) {
+  if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("cannot publish data");
     return RMW_RET_ERROR;
   }
