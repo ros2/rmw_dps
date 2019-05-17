@@ -22,6 +22,7 @@
 #include "rmw/event.h"
 
 #include "rmw_dps_cpp/CborStream.hpp"
+#include "rmw_dps_cpp/Listener.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "ros_message_serialization.hpp"

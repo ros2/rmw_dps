@@ -20,6 +20,7 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/Listener.hpp"
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"

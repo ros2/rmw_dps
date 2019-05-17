@@ -17,8 +17,6 @@
 
 #include <dps/dps.h>
 
-#include "rmw_dps_cpp/Listener.hpp"
-
 class Listener;
 
 typedef struct CustomSubscriberInfo
