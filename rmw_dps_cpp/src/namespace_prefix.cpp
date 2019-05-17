@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAMES_COMMON_HPP_
-#define NAMES_COMMON_HPP_
+#include "rmw_dps_cpp/namespace_prefix.hpp"
 
-#include "rmw/rmw.h"
-
-std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name);
-std::string _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name);
-
-bool _advertise(const rmw_node_t * node, const std::string topic = std::string());
-
-#endif  // NAMES_COMMON_HPP_
+extern "C"
+{
+const char * const dps_uuid_prefix = "/$ROS/uuid=";
+const char * const dps_namespace_prefix = "/$ROS/namespace=";
+const char * const dps_name_prefix = "/$ROS/name=";
+}  // extern "C"

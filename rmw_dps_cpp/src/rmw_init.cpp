@@ -22,6 +22,7 @@ __declspec(dllimport) int DPS_Debug;
 #else
 #include <dps/dbg.h>
 #endif
+#include <dps/dps.h>
 
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
@@ -100,6 +101,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_ERROR);
   (void)ret;
   DPS_Debug = 0;
+  DPS_InitUUID();
 
   return RMW_RET_OK;
 }

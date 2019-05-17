@@ -106,7 +106,7 @@ rmw_create_subscription(
 
   (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
-  std::string dps_topic = get_dps_topic_name(impl->domain_id_, topic_name);
+  std::string dps_topic = _get_dps_topic_name(impl->domain_id_, topic_name);
   const char * topic = dps_topic.c_str();
   rmw_subscription_t * rmw_subscription = nullptr;
   DPS_Status ret;

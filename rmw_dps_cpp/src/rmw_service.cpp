@@ -82,7 +82,7 @@ rmw_create_service(
   }
 
   CustomServiceInfo * info = nullptr;
-  std::string dps_topic = get_dps_topic_name(impl->domain_id_, service_name);
+  std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service_name);
   const char * topic = dps_topic.c_str();
   rmw_service_t * rmw_service = nullptr;
   DPS_Status ret;

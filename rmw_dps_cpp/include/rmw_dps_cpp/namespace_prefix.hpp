@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAMES_COMMON_HPP_
-#define NAMES_COMMON_HPP_
+#ifndef RMW_DPS_SHARED_CPP__NAMESPACE_PREFIX_HPP_
+#define RMW_DPS_SHARED_CPP__NAMESPACE_PREFIX_HPP_
 
-#include "rmw/rmw.h"
+#include "rmw/visibility_control.h"
 
-std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name);
-std::string _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name);
+extern "C"
+{
+extern const char * const dps_uuid_prefix;
+extern const char * const dps_namespace_prefix;
+extern const char * const dps_name_prefix;
+}  // extern "C"
 
-bool _advertise(const rmw_node_t * node, const std::string topic = std::string());
-
-#endif  // NAMES_COMMON_HPP_
+#endif  // RMW_DPS_SHARED_CPP__NAMESPACE_PREFIX_HPP_
