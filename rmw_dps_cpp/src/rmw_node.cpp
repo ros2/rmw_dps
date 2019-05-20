@@ -140,7 +140,7 @@ create_node(
       RMW_SET_ERROR_MSG("failed to create discover subscription");
       goto fail;
     }
-    node_impl->listener_ = new NodeListener;
+    node_impl->listener_ = new NodeListener(node_impl->graph_guard_condition_);
     ret = DPS_SetSubscriptionData(node_impl->discover_, node_impl->listener_);
     if (ret != DPS_OK) {
       RMW_SET_ERROR_MSG("failed to set discover subscription data");

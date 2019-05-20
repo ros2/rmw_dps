@@ -19,4 +19,6 @@ extern "C"
 const char * const dps_uuid_prefix = "/$ROS/uuid=";
 const char * const dps_namespace_prefix = "/$ROS/namespace=";
 const char * const dps_name_prefix = "/$ROS/name=";
+const char * const dps_publisher_prefix = "/$ROS/publisher&topic=";
+const char * const dps_subscriber_prefix = "/$ROS/subscriber&topic=";
 }  // extern "C"

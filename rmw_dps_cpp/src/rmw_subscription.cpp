@@ -109,6 +109,7 @@ rmw_create_subscription(
   std::string dps_topic = _get_dps_topic_name(impl->domain_id_, topic_name);
   const char * topic = dps_topic.c_str();
   rmw_subscription_t * rmw_subscription = nullptr;
+  std::string advertisement;
   DPS_Status ret;
 
   info = new CustomSubscriberInfo();
@@ -154,6 +155,14 @@ rmw_create_subscription(
   }
   memcpy(const_cast<char *>(rmw_subscription->topic_name), topic_name,
     strlen(topic_name) + 1);
+
+  // DPS does not allow empty topic segments "=/" from topic_name below, so use &topic_name[1]
+  advertisement = std::to_string(impl->domain_id_) + dps_subscriber_prefix + &topic_name[1] +
+    "&types=" + type_name;
+  if (!_advertise(node, advertisement)) {
+    RMW_SET_ERROR_MSG("failed to advertise");
+    goto fail;
+  }
 
   return rmw_subscription;
 

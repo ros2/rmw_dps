@@ -154,6 +154,7 @@ rmw_create_publisher(
   std::string dps_topic = _get_dps_topic_name(impl->domain_id_, topic_name);
   const char * topic = dps_topic.c_str();
   rmw_publisher_t * rmw_publisher = nullptr;
+  std::string advertisement;
   DPS_Status ret;
 
   info = new CustomPublisherInfo();
@@ -193,15 +194,12 @@ rmw_create_publisher(
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
 
-  // TODO(malsbat): triggering the guard condition to emulate EDP for now
-  {
-    rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
-    if (ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to trigger graph guard condition: %s",
-        rmw_get_error_string().str);
-    }
+  // DPS does not allow empty topic segments "=/" from topic_name below, so use &topic_name[1]
+  advertisement = std::to_string(impl->domain_id_) + dps_publisher_prefix + &topic_name[1] +
+    "&types=" + type_name;
+  if (!_advertise(node, advertisement)) {
+    RMW_SET_ERROR_MSG("failed to advertise");
+    goto fail;
   }
 
   return rmw_publisher;

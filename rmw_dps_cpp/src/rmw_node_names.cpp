@@ -52,27 +52,26 @@ rmw_get_node_names(
   }
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
-  auto participant_names = impl->listener_->get_discovered_names();
-  auto participant_ns = impl->listener_->get_discovered_namespaces();
+  auto nodes = impl->listener_->get_discovered_nodes();
 
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcutils_ret_t rcutils_ret =
-    rcutils_string_array_init(node_names, participant_names.size(), &allocator);
+    rcutils_string_array_init(node_names, nodes.size(), &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     goto fail;
   }
 
   rcutils_ret =
-    rcutils_string_array_init(node_namespaces, participant_names.size(), &allocator);
+    rcutils_string_array_init(node_namespaces, nodes.size(), &allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     goto fail;
   }
 
-  for (size_t i = 0; i < participant_names.size(); ++i) {
-    node_names->data[i] = rcutils_strdup(participant_names[i].c_str(), allocator);
-    node_namespaces->data[i] = rcutils_strdup(participant_ns[i].c_str(), allocator);
+  for (size_t i = 0; i < nodes.size(); ++i) {
+    node_names->data[i] = rcutils_strdup(nodes[i].name.c_str(), allocator);
+    node_namespaces->data[i] = rcutils_strdup(nodes[i].namespace_.c_str(), allocator);
     if (!node_names->data[i] || !node_namespaces->data[i]) {
       RMW_SET_ERROR_MSG("failed to allocate memory for node name");
       goto fail;
