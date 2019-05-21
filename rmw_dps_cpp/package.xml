@@ -13,14 +13,12 @@
 
   <buildtool_export_depend>ament_cmake</buildtool_export_depend>
 
-  <build_depend>dps_for_iot</build_depend>
   <build_depend>dps_for_iot_cmake_module</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rmw</build_depend>
   <build_depend>rosidl_typesupport_introspection_c</build_depend>
   <build_depend>rosidl_typesupport_introspection_cpp</build_depend>
 
-  <build_export_depend>dps_for_iot</build_export_depend>
   <build_export_depend>dps_for_iot_cmake_module</build_export_depend>
   <build_export_depend>rcutils</build_export_depend>
   <build_export_depend>rmw</build_export_depend>
