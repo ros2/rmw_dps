@@ -488,7 +488,7 @@ public:
     if (info > std::numeric_limits<std::size_t>::max()) {
       throw std::runtime_error("array size too large");
     }
-    *size = info;
+    *size = (size_t)info;
     return *this;
   }
 
