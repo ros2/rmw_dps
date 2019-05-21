@@ -61,9 +61,11 @@ rmw_create_subscription(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%d,depth=%zu,reliability=%d,durability=%d},ignore_local_publications=%d)",
+    "qos_policies={history=%d,depth=%zu,reliability=%d,durability=%d},"
+    "ignore_local_publications=%d)",
     __FUNCTION__, (void*)node, (void*)type_supports, topic_name, qos_policies->history,
-    qos_policies->depth, qos_policies->reliability, qos_policies->durability, ignore_local_publications);
+    qos_policies->depth, qos_policies->reliability, qos_policies->durability,
+    ignore_local_publications);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

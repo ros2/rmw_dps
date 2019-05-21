@@ -105,7 +105,8 @@ rmw_create_publisher(
     "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s})",
     __FUNCTION__, (void*)node, (void*)type_supports, topic_name,
     qos_history_string(qos_policies->history), qos_policies->depth,
-    qos_reliability_string(qos_policies->reliability), qos_durability_string(qos_policies->durability));
+    qos_reliability_string(qos_policies->reliability),
+    qos_durability_string(qos_policies->durability));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

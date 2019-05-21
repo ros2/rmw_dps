@@ -201,7 +201,8 @@ rmw_take_serialized_message_with_info(
 
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p,allocation=%p)", __FUNCTION__,
+    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p,allocation=%p)",
+    __FUNCTION__,
     (void*)subscription, (void*)serialized_message, (void*)taken, (void*)message_info,
     (void*)allocation);
 

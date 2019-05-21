@@ -69,8 +69,8 @@ rmw_deserialize(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(serialized_message=%p,type_support=%p,ros_message=%p)", __FUNCTION__, (void*)serialized_message,
-    (void*)type_support, ros_message);
+    "%s(serialized_message=%p,type_support=%p,ros_message=%p)", __FUNCTION__,
+    (void*)serialized_message, (void*)type_support, ros_message);
 
   const rosidl_message_type_support_t * ts = get_message_typesupport_handle(
     type_support, rosidl_typesupport_introspection_c__identifier);

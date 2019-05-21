@@ -40,7 +40,7 @@ rmw_get_subscriber_names_and_types_by_node(
     "%s(node=%p,allocator=%p,node_name=%s,node_namespace=%s,no_demangle=%d,"
     "topic_names_and_types=%p)",
     __FUNCTION__, (void*)node, (void*)allocator, node_name, node_namespace, no_demangle,
-    (void*)topic_names_and_types);
+    reinterpret_cast<void*>(topic_names_and_types);
 
   return RMW_RET_OK;
 }
@@ -60,7 +60,7 @@ rmw_get_publisher_names_and_types_by_node(
     "%s(node=%p,allocator=%p,node_name=%s,node_namespace=%s,no_demangle=%d,"
     "topic_names_and_types=%p)",
     __FUNCTION__, (void*)node, (void*)allocator, node_name, node_namespace, no_demangle,
-    (void*)topic_names_and_types);
+    reinterpret_cast<void*>(topic_names_and_types);
 
   return RMW_RET_OK;
 }
