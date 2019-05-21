@@ -17,4 +17,4 @@ script:
     - docker exec osrf_ros2_nightly /bin/bash -c "apt-get update && apt-get install -y scons python-dev"
     - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon build --packages-up-to rmw_dps_cpp"
     - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test --packages-select rmw_dps_cpp"
-    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test-result"
+    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test-result --verbose"
