@@ -192,7 +192,7 @@ rmw_destroy_node(rmw_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p)", __FUNCTION__, (void*)node);
+    "%s(node=%p)", __FUNCTION__, (void *)node);
 
   rmw_ret_t result_ret = RMW_RET_OK;
   if (!node) {
@@ -247,7 +247,7 @@ rmw_node_get_graph_guard_condition(const rmw_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p)", __FUNCTION__, (void*)node);
+    "%s(node=%p)", __FUNCTION__, (void *)node);
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   if (!impl) {

@@ -39,7 +39,7 @@ rmw_create_client(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,service_name=%s,"
     "qos_policies={history=%d,depth=%zu,reliability=%d,durability=%d})",
-    __FUNCTION__, (void*)node, (void*)type_supports, service_name, qos_policies->history,
+    __FUNCTION__, (void *)node, (void *)type_supports, service_name, qos_policies->history,
     qos_policies->depth, qos_policies->reliability, qos_policies->durability);
 
   if (!node) {
@@ -190,7 +190,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,client=%p)", __FUNCTION__, (void*)node, (void*)client);
+    "%s(node=%p,client=%p)", __FUNCTION__, (void *)node, (void *)client);
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");

@@ -26,7 +26,7 @@ rmw_count_publishers(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, (void*)node, topic_name, (void*)count);
+    "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, (void *)node, topic_name, (void *)count);
 
   // TODO(malsbat): implement
   *count = 0;
@@ -41,7 +41,7 @@ rmw_count_subscribers(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, (void*)node, topic_name, (void*)count);
+    "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, (void *)node, topic_name, (void *)count);
 
   // TODO(malsbat): implement
   *count = 0;

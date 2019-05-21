@@ -36,7 +36,7 @@ rmw_publish(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(publisher=%p,ros_message=%p,allocation=%p)",
-    __FUNCTION__, (void*)publisher, (void*)ros_message, (void*)allocation);
+    __FUNCTION__, (void *)publisher, (void *)ros_message, (void *)allocation);
 
   rmw_ret_t returnedValue = RMW_RET_ERROR;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
