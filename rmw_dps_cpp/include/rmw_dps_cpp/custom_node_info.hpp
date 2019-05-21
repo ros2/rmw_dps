@@ -67,14 +67,16 @@ public:
     : namespace_("/") {}
     std::string name;
     std::string namespace_;
-    std::vector<Topic> publishers;
     std::vector<Topic> subscribers;
+    std::vector<Topic> publishers;
+    std::vector<Topic> services;
     bool operator==(const Node & that) const
     {
       return this->name == that.name &&
              this->namespace_ == that.namespace_ &&
+             this->subscribers == that.subscribers &&
              this->publishers == that.publishers &&
-             this->subscribers == that.subscribers;
+             this->services == that.services;
     }
   };
 
@@ -111,14 +113,19 @@ public:
         node.name = topic.substr(pos + strlen(dps_name_prefix));
         continue;
       }
+      Topic subscriber;
+      if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
+        node.subscribers.push_back(subscriber);
+        continue;
+      }
       Topic publisher;
       if (process_topic_info(topic, dps_publisher_prefix, publisher)) {
         node.publishers.push_back(publisher);
         continue;
       }
-      Topic subscriber;
-      if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
-        node.subscribers.push_back(subscriber);
+      Topic service;
+      if (process_topic_info(topic, dps_service_prefix, service)) {
+        node.services.push_back(service);
         continue;
       }
     }
@@ -150,6 +157,18 @@ public:
   }
 
   size_t
+  count_subscribers(const char * topic_name) const
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    size_t count = 0;
+    for (auto it : discovered_nodes_) {
+      count += std::count_if(it.second.subscribers.begin(), it.second.subscribers.end(),
+          [topic_name](const Topic & subscriber) {return subscriber.topic == topic_name;});
+    }
+    return count;
+  }
+
+  size_t
   count_publishers(const char * topic_name) const
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -162,13 +181,13 @@ public:
   }
 
   size_t
-  count_subscribers(const char * topic_name) const
+  count_services(const char * topic_name) const
   {
     std::lock_guard<std::mutex> lock(mutex_);
     size_t count = 0;
     for (auto it : discovered_nodes_) {
-      count += std::count_if(it.second.subscribers.begin(), it.second.subscribers.end(),
-          [topic_name](const Topic & subscriber) {return subscriber.topic == topic_name;});
+      count += std::count_if(it.second.services.begin(), it.second.services.end(),
+          [topic_name](const Topic & service) {return service.topic == topic_name;});
     }
     return count;
   }
@@ -208,6 +227,23 @@ public:
   }
 
   std::map<std::string, std::set<std::string>>
+  get_service_names_and_types_by_node(const char * name, const char * namespace_)
+  {
+    std::map<std::string, std::set<std::string>> names_and_types;
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto uuid_node_pair = std::find_if(discovered_nodes_.begin(), discovered_nodes_.end(),
+        [name, namespace_](const std::pair<std::string, Node> & pair) {
+          return pair.second.name == name && pair.second.namespace_ == namespace_;
+        });
+    if (uuid_node_pair != discovered_nodes_.end()) {
+      for (auto it : uuid_node_pair->second.services) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+    }
+    return names_and_types;
+  }
+
+  std::map<std::string, std::set<std::string>>
   get_topic_names_and_types()
   {
     std::map<std::string, std::set<std::string>> names_and_types;
@@ -217,6 +253,9 @@ public:
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());
       }
       for (auto it : uuid_node_pair.second.publishers) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+      for (auto it : uuid_node_pair.second.services) {
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());
       }
     }

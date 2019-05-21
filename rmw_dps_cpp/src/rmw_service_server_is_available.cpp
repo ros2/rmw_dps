@@ -12,12 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "rcutils/logging_macros.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/impl/cpp/macros.hpp"
 
+#include "rmw_dps_cpp/custom_client_info.hpp"
+#include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 
 extern "C"
@@ -53,10 +57,19 @@ rmw_service_server_is_available(
     return RMW_RET_ERROR;
   }
 
-  // TODO(malsbat): implement
-
-  // all conditions met, there is a service server available
-  *is_available = true;
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  if (!impl) {
+    RMW_SET_ERROR_MSG("node impl is null");
+    return RMW_RET_ERROR;
+  }
+  auto client_info = static_cast<CustomClientInfo *>(client->data);
+  if (!client_info) {
+    RMW_SET_ERROR_MSG("client info handle is null");
+    return RMW_RET_ERROR;
+  }
+  std::string topic = DPS_PublicationGetTopic(client_info->request_publication_, 0);
+  // Remove domain_id from DPS topic before counting services
+  *is_available = impl->listener_->count_services(&topic[topic.find('/') + 1]) > 0;
   return RMW_RET_OK;
 }
 }  // extern "C"

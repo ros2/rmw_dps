@@ -85,6 +85,7 @@ rmw_create_service(
   std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service_name);
   const char * topic = dps_topic.c_str();
   rmw_service_t * rmw_service = nullptr;
+  std::string advertisement;
   DPS_Status ret;
 
   info = new CustomServiceInfo();
@@ -149,6 +150,14 @@ rmw_create_service(
   }
   memcpy(const_cast<char *>(rmw_service->service_name), service_name,
     strlen(service_name) + 1);
+
+  // DPS does not allow empty topic segments "=/" from topic_name below, so use &service_name[1]
+  advertisement = std::to_string(impl->domain_id_) + dps_service_prefix + &service_name[1] +
+    "&types=" + request_type_name + "," + response_type_name;
+  if (!_advertise(node, advertisement)) {
+    RMW_SET_ERROR_MSG("failed to advertise");
+    goto fail;
+  }
 
   return rmw_service;
 
