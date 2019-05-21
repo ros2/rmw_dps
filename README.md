@@ -1,4 +1,5 @@
-# rmw_dps
+# rmw_dps [![Build Status](https://travis-ci.com/ros2/rmw_dps.svg?branch=master)](https://travis-ci.com/ros2/rmw_dps)
+
 Implementation of the ROS Middleware (rmw) Interface using Intel's [Distributed Publish &amp; Subscribe for IoT](https://github.com/intel/dps-for-iot) (DPS).
 
 DPS is a new protocol that implements the publish/subscribe (pub/sub) communication pattern.  For more information see the project's [documentation](https://intel.github.io/dps-for-iot/).
