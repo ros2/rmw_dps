@@ -14,7 +14,7 @@ before_install:
     - docker exec osrf_ros2_nightly /bin/bash -c "git config --global user.name nobody"
     - docker exec osrf_ros2_nightly /bin/bash -c "git config --global user.email noreply@osrfoundation.org"
 script:
-    - docker exec osrf_ros2_nightly /bin/bash -c "rosdep update && rosdep install --from-paths /shared --ignore-src -r -y"
+    - docker exec osrf_ros2_nightly /bin/bash -c "apt-get update && source /opt/ros/dashing/setup.bash && rosdep update && rosdep install --from-paths /shared --ignore-src -r -y"
     - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon build --packages-up-to rmw_dps_cpp"
-    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test --packages-select rmw_dps_cpp"
+    - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test"
     - docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/ && colcon test-result --verbose"
