@@ -1,5 +1,11 @@
 sudo: required
 language: generic
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+    recipients:
+      - ros-dps-interest@amazon.com
 services:
     - docker
 before_install:
