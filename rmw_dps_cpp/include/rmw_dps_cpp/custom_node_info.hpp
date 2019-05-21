@@ -15,13 +15,14 @@
 #ifndef RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_
 #define RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_
 
+#include <dps/dps.h>
 #include <algorithm>
 #include <map>
 #include <mutex>
 #include <set>
+#include <string>
+#include <utility>
 #include <vector>
-
-#include <dps/dps.h>
 
 #include "rmw/rmw.h"
 
@@ -57,12 +58,13 @@ public:
     bool operator==(const Topic & that) const
     {
       return this->topic == that.topic &&
-        this->types == that.types;
+             this->types == that.types;
     }
   };
   struct Node
   {
-    Node() : namespace_("/") {}
+    Node()
+    : namespace_("/") {}
     std::string name;
     std::string namespace_;
     std::vector<Topic> publishers;
@@ -70,9 +72,9 @@ public:
     bool operator==(const Node & that) const
     {
       return this->name == that.name &&
-        this->namespace_ == that.namespace_ &&
-        this->publishers == that.publishers &&
-        this->subscribers == that.subscribers;
+             this->namespace_ == that.namespace_ &&
+             this->publishers == that.publishers &&
+             this->subscribers == that.subscribers;
     }
   };
 
@@ -85,7 +87,7 @@ public:
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void*)sub, (void*)pub, payload, len);
+      "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)sub, (void *)pub, payload, len);
 
     NodeListener * listener = reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
     std::lock_guard<std::mutex> lock(listener->mutex_);
@@ -154,7 +156,7 @@ public:
     size_t count = 0;
     for (auto it : discovered_nodes_) {
       count += std::count_if(it.second.publishers.begin(), it.second.publishers.end(),
-        [topic_name](const Topic & publisher) { return publisher.topic == topic_name; });
+          [topic_name](const Topic & publisher) {return publisher.topic == topic_name;});
     }
     return count;
   }
@@ -166,7 +168,7 @@ public:
     size_t count = 0;
     for (auto it : discovered_nodes_) {
       count += std::count_if(it.second.subscribers.begin(), it.second.subscribers.end(),
-        [topic_name](const Topic & subscriber) { return subscriber.topic == topic_name; });
+          [topic_name](const Topic & subscriber) {return subscriber.topic == topic_name;});
     }
     return count;
   }
@@ -177,9 +179,9 @@ public:
     std::map<std::string, std::set<std::string>> names_and_types;
     std::lock_guard<std::mutex> lock(mutex_);
     auto uuid_node_pair = std::find_if(discovered_nodes_.begin(), discovered_nodes_.end(),
-      [name, namespace_](const std::pair<std::string, Node> & pair) {
-        return pair.second.name == name && pair.second.namespace_ == namespace_;
-      });
+        [name, namespace_](const std::pair<std::string, Node> & pair) {
+          return pair.second.name == name && pair.second.namespace_ == namespace_;
+        });
     if (uuid_node_pair != discovered_nodes_.end()) {
       for (auto it : uuid_node_pair->second.subscribers) {
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());
@@ -194,9 +196,9 @@ public:
     std::map<std::string, std::set<std::string>> names_and_types;
     std::lock_guard<std::mutex> lock(mutex_);
     auto uuid_node_pair = std::find_if(discovered_nodes_.begin(), discovered_nodes_.end(),
-      [name, namespace_](const std::pair<std::string, Node> & pair) {
-        return pair.second.name == name && pair.second.namespace_ == namespace_;
-      });
+        [name, namespace_](const std::pair<std::string, Node> & pair) {
+          return pair.second.name == name && pair.second.namespace_ == namespace_;
+        });
     if (uuid_node_pair != discovered_nodes_.end()) {
       for (auto it : uuid_node_pair->second.publishers) {
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());

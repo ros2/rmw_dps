@@ -15,6 +15,7 @@
 #include <dps/event.h>
 #include <algorithm>
 #include <new>
+#include <string>
 #include <vector>
 
 #include "rcutils/logging_macros.h"

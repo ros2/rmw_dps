@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_DPS_SHARED_CPP__NAMESPACE_PREFIX_HPP_
-#define RMW_DPS_SHARED_CPP__NAMESPACE_PREFIX_HPP_
+#ifndef RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_
+#define RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_
 
 #include "rmw/visibility_control.h"
 
@@ -26,4 +26,4 @@ extern const char * const dps_publisher_prefix;
 extern const char * const dps_subscriber_prefix;
 }  // extern "C"
 
-#endif  // RMW_DPS_SHARED_CPP__NAMESPACE_PREFIX_HPP_
+#endif  // RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_

@@ -53,7 +53,7 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
   }
   std::vector<const char *> ctopics;
   std::transform(topics.begin(), topics.end(), std::back_inserter(ctopics),
-    [](const std::string & s) -> const char * { return s.c_str(); });
+    [](const std::string & s) -> const char * {return s.c_str();});
 
   if (impl->advertisement_) {
     ret = DPS_DestroyPublication(impl->advertisement_);
@@ -69,7 +69,7 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
     return false;
   }
   ret = DPS_InitPublication(impl->advertisement_, &ctopics[0], ctopics.size(), DPS_FALSE,
-    nullptr, nullptr);
+      nullptr, nullptr);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize advertisement");
     return false;

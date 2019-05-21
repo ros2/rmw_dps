@@ -15,6 +15,8 @@
 #ifndef NAMES_COMMON_HPP_
 #define NAMES_COMMON_HPP_
 
+#include <string>
+
 #include "rmw/rmw.h"
 
 std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name);

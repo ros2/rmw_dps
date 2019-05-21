@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <map>
+#include <set>
+#include <string>
+
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
@@ -186,7 +190,7 @@ rmw_get_subscriber_names_and_types_by_node(
     reinterpret_cast<void *>(topic_names_and_types));
 
   rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, no_demangle,
-    topic_names_and_types);
+      topic_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
   }
@@ -213,7 +217,7 @@ rmw_get_publisher_names_and_types_by_node(
     reinterpret_cast<void *>(topic_names_and_types));
 
   rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, no_demangle,
-    topic_names_and_types);
+      topic_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
   }
@@ -251,7 +255,7 @@ rmw_get_topic_names_and_types(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,allocator=%p,no_demangle=%d,topic_names_and_types=%p)",
-    __FUNCTION__, (void*)node, (void*)allocator, no_demangle, (void*)topic_names_and_types);
+    __FUNCTION__, (void *)node, (void *)allocator, no_demangle, (void *)topic_names_and_types);
 
   rmw_ret_t valid_input = _validate_input(node, allocator, no_demangle, topic_names_and_types);
   if (valid_input != RMW_RET_OK) {

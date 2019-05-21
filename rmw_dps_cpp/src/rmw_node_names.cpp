@@ -32,8 +32,8 @@ rmw_get_node_names(
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(node=%p,node_names=%p,node_namespaces=%p)", __FUNCTION__, (void*)node, (void*)node_names,
-    (void*)node_namespaces);
+    "%s(node=%p,node_names=%p,node_namespaces=%p)", __FUNCTION__, (void *)node, (void *)node_names,
+    (void *)node_namespaces);
 
   if (!node) {
     RMW_SET_ERROR_MSG("null node handle");
