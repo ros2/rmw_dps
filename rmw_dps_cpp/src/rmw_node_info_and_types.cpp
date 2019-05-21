@@ -182,8 +182,8 @@ rmw_get_subscriber_names_and_types_by_node(
     "rmw_dps_cpp",
     "%s(node=%p,allocator=%p,node_name=%s,node_namespace=%s,no_demangle=%d,"
     "topic_names_and_types=%p)",
-    __FUNCTION__, (void*)node, (void*)allocator, node_name, node_namespace, no_demangle,
-    (void*)topic_names_and_types);
+    __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace, no_demangle,
+    reinterpret_cast<void *>(topic_names_and_types));
 
   rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, no_demangle,
     topic_names_and_types);
@@ -209,8 +209,8 @@ rmw_get_publisher_names_and_types_by_node(
     "rmw_dps_cpp",
     "%s(node=%p,allocator=%p,node_name=%s,node_namespace=%s,no_demangle=%d,"
     "topic_names_and_types=%p)",
-    __FUNCTION__, (void*)node, (void*)allocator, node_name, node_namespace, no_demangle,
-    (void*)topic_names_and_types);
+    __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace, no_demangle,
+    reinterpret_cast<void *>(topic_names_and_types));
 
   rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, no_demangle,
     topic_names_and_types);
@@ -235,8 +235,8 @@ rmw_get_service_names_and_types_by_node(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,allocator=%p,node_name=%s,node_namespace=%s,service_names_and_types=%p)",
-    __FUNCTION__, (void*)node, (void*)allocator, node_name, node_namespace,
-    (void*)service_names_and_types);
+    __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace,
+    (void *)service_names_and_types);
 
   return RMW_RET_OK;
 }

@@ -86,8 +86,8 @@ rmw_take(
 
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,ros_message=%p,taken=%p,allocation=%p)", __FUNCTION__, (void*)subscription,
-    ros_message, (void*)taken, (void*)allocation);
+    "%s(subscription=%p,ros_message=%p,taken=%p,allocation=%p)", __FUNCTION__, (void *)subscription,
+    ros_message, (void *)taken, (void *)allocation);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -112,7 +112,7 @@ rmw_take_with_info(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,ros_message=%p,taken=%p,message_info=%p,allocation=%p)", __FUNCTION__,
-    (void*)subscription, ros_message, (void*)taken, (void*)message_info, (void*)allocation);
+    (void *)subscription, ros_message, (void *)taken, (void *)message_info, (void *)allocation);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -178,7 +178,7 @@ rmw_take_serialized_message(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,serialized_message=%p,taken=%p,allocation=%p)", __FUNCTION__,
-    (void*)subscription, (void*)serialized_message, (void*)taken, (void*)allocation);
+    (void *)subscription, (void *)serialized_message, (void *)taken, (void *)allocation);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -202,9 +202,11 @@ rmw_take_serialized_message_with_info(
 
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p,allocation=%p)", __FUNCTION__,
-    (void*)subscription, (void*)serialized_message, (void*)taken, (void*)message_info,
-    (void*)allocation);
+    "%s(subscription=%p,serialized_message=%p,taken=%p,message_info=%p,allocation=%p)",
+    __FUNCTION__,
+    reinterpret_cast<const void *>(subscription), reinterpret_cast<void *>(serialized_message),
+    reinterpret_cast<void *>(taken), reinterpret_cast<void *>(message_info),
+    reinterpret_cast<void *>(allocation));
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
