@@ -49,7 +49,7 @@ public:
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void*)sub, (void*)pub, payload, len);
+      "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)sub, (void *)pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
       "pub={uuid=%s,sequenceNum=%d}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
@@ -77,7 +77,7 @@ public:
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void*)pub, payload, len);
+      "%s(pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
       "pub={uuid=%s,sequenceNum=%u}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
