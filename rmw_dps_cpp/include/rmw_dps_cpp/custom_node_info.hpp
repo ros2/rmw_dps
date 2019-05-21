@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <map>
 #include <mutex>
+#include <set>
 #include <vector>
 
 #include <dps/dps.h>
@@ -168,6 +169,56 @@ public:
         [topic_name](const Topic & subscriber) { return subscriber.topic == topic_name; });
     }
     return count;
+  }
+
+  std::map<std::string, std::set<std::string>>
+  get_subscriber_names_and_types_by_node(const char * name, const char * namespace_)
+  {
+    std::map<std::string, std::set<std::string>> names_and_types;
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto uuid_node_pair = std::find_if(discovered_nodes_.begin(), discovered_nodes_.end(),
+      [name, namespace_](const std::pair<std::string, Node> & pair) {
+        return pair.second.name == name && pair.second.namespace_ == namespace_;
+      });
+    if (uuid_node_pair != discovered_nodes_.end()) {
+      for (auto it : uuid_node_pair->second.subscribers) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+    }
+    return names_and_types;
+  }
+
+  std::map<std::string, std::set<std::string>>
+  get_publisher_names_and_types_by_node(const char * name, const char * namespace_)
+  {
+    std::map<std::string, std::set<std::string>> names_and_types;
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto uuid_node_pair = std::find_if(discovered_nodes_.begin(), discovered_nodes_.end(),
+      [name, namespace_](const std::pair<std::string, Node> & pair) {
+        return pair.second.name == name && pair.second.namespace_ == namespace_;
+      });
+    if (uuid_node_pair != discovered_nodes_.end()) {
+      for (auto it : uuid_node_pair->second.publishers) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+    }
+    return names_and_types;
+  }
+
+  std::map<std::string, std::set<std::string>>
+  get_topic_names_and_types()
+  {
+    std::map<std::string, std::set<std::string>> names_and_types;
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto uuid_node_pair : discovered_nodes_) {
+      for (auto it : uuid_node_pair.second.subscribers) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+      for (auto it : uuid_node_pair.second.publishers) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+    }
+    return names_and_types;
   }
 
 private:

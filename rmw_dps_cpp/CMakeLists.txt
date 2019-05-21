@@ -68,7 +68,6 @@ add_library(rmw_dps_cpp
   src/rmw_service_server_is_available.cpp
   src/rmw_subscription.cpp
   src/rmw_take.cpp
-  src/rmw_topic_names_and_types.cpp
   src/rmw_trigger_guard_condition.cpp
   src/rmw_wait.cpp
   src/rmw_wait_set.cpp
