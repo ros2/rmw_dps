@@ -92,8 +92,9 @@ rmw_wait(
     "rmw_dps_cpp",
     "%s(subscriptions=%p,guard_conditions=%p,services=%p,clients=%p,events=%p,wait_set=%p,"
     "wait_timeout=%p)",
-    __FUNCTION__, (void*)subscriptions, (void*)guard_conditions, (void*)services, (void*)clients,
-    (void*)events, (void*)wait_set, (void*)wait_timeout);
+    __FUNCTION__, (void *)subscriptions, (void *)guard_conditions, (void *)services,
+    reinterpret_cast<void *>(clients), reinterpret_cast<void *>(events),
+    reinterpret_cast<void *>(wait_set), reinterpret_cast<const void *>(wait_timeout));
 
   if (!wait_set) {
     RMW_SET_ERROR_MSG("wait set handle is null");

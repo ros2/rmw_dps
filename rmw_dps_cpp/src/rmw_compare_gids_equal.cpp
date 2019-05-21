@@ -28,7 +28,7 @@ rmw_compare_gids_equal(const rmw_gid_t * gid1, const rmw_gid_t * gid2, bool * re
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
-    "%s(gid1=%p,gid2=%p,result=%p)", __FUNCTION__, (void*)gid1, (void*)gid2, (void*)result);
+    "%s(gid1=%p,gid2=%p,result=%p)", __FUNCTION__, (void *)gid1, (void *)gid2, (void *)result);
 
   if (!gid1) {
     RMW_SET_ERROR_MSG("gid1 is null");
