@@ -105,7 +105,8 @@ public:
       }
       pos = topic.find(dps_namespace_prefix);
       if (pos != std::string::npos) {
-        node.namespace_ = topic.substr(pos + strlen(dps_namespace_prefix));
+        // See _advertise() for explanation of "/" prefix below
+        node.namespace_ = std::string("/") + topic.substr(pos + strlen(dps_namespace_prefix));
         continue;
       }
       pos = topic.find(dps_name_prefix);

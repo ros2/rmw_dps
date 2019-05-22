@@ -43,8 +43,9 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
   std::vector<std::string> & topics = impl->advertisement_topics_;
   if (!impl->advertisement_) {
     topics.push_back(std::to_string(impl->domain_id_) + dps_uuid_prefix + impl->uuid_);
-    if (strcmp("/", node->namespace_) != 0) {
-      topics.push_back(std::to_string(impl->domain_id_) + dps_namespace_prefix + node->namespace_);
+    // DPS does not allow empty topic segments "=/" from namespace_ below, so use &namespace_[1]
+    if (node->namespace_[1]) {
+      topics.push_back(std::to_string(impl->domain_id_) + dps_namespace_prefix + &node->namespace_[1]);
     }
     topics.push_back(std::to_string(impl->domain_id_) + dps_name_prefix + node->name);
   }
