@@ -62,7 +62,8 @@ TEST_F(test_node, create) {
   ret = rmw_destroy_node(node);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  node = rmw_create_node(&context, "test_subscriber_MultiNested", "/test_time_23_42_58", 97, &security_options);
+  node = rmw_create_node(&context, "test_subscriber_MultiNested", "/test_time_23_42_58", 97,
+      &security_options);
   ASSERT_TRUE(nullptr != node);
   ret = rmw_destroy_node(node);
   ASSERT_EQ(RMW_RET_OK, ret);
