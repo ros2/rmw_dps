@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gmock/gmock.h"
-
 #include <rcutils/allocator.h>
+
+#include "gmock/gmock.h"
 
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
@@ -66,5 +66,4 @@ TEST_F(test_node, create) {
   ASSERT_TRUE(nullptr != node);
   ret = rmw_destroy_node(node);
   ASSERT_EQ(RMW_RET_OK, ret);
-
 }
