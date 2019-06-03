@@ -36,6 +36,8 @@ ament_package(
 include(ExternalProject)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(VARIANT "debug")
+elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+  set(VARIANT "min-size-release")
 else()
   set(VARIANT "release")
 endif()
