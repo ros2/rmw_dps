@@ -18,6 +18,7 @@
 #include <dps/private/cbor.h>
 
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -480,10 +481,15 @@ public:
   inline RxStream & deserializeSequenceSize(size_t * size)
   {
     uint8_t maj;
-    DPS_Status ret = CBOR_Peek(&buffer_, &maj, size);
+    uint64_t info;
+    DPS_Status ret = CBOR_Peek(&buffer_, &maj, &info);
     if (ret != DPS_OK || (maj != CBOR_ARRAY && maj != CBOR_BYTES)) {
       throw std::runtime_error("failed to deserialize array size");
     }
+    if (info > std::numeric_limits<std::size_t>::max()) {
+      throw std::runtime_error("array size too large");
+    }
+    *size = (size_t)info;
     return *this;
   }
 
