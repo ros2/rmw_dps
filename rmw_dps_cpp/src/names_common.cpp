@@ -46,7 +46,7 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
     // DPS does not allow empty topic segments "=/" from namespace_ below, so use &namespace_[1]
     if (node->namespace_[1]) {
       topics.push_back(std::to_string(impl->domain_id_) + dps_namespace_prefix +
-          &node->namespace_[1]);
+        &node->namespace_[1]);
     }
     topics.push_back(std::to_string(impl->domain_id_) + dps_name_prefix + node->name);
   }
