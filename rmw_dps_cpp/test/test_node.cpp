@@ -14,6 +14,8 @@
 
 #include <rcutils/allocator.h>
 
+#include <chrono>
+
 #include "gmock/gmock.h"
 
 #include "rmw/node_security_options.h"
@@ -66,5 +68,49 @@ TEST_F(test_node, create) {
       &security_options);
   ASSERT_TRUE(nullptr != node);
   ret = rmw_destroy_node(node);
+  ASSERT_EQ(RMW_RET_OK, ret);
+}
+
+TEST_F(test_node, discover_existing_node) {
+  rmw_ret_t ret;
+  rmw_node_t * existing_node;
+  rmw_node_t * node;
+  rmw_wait_set_t * wait_set = rmw_create_wait_set(&context, 1);
+  rmw_time_t timeout = {1, 0};
+  rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
+
+  existing_node = rmw_create_node(&context, "existing_node", "/", 0, &security_options);
+  ASSERT_TRUE(nullptr != existing_node);
+
+  // wait for initial advertisements to settle down
+  ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
+  ASSERT_EQ(RMW_RET_TIMEOUT, ret);
+
+  node = rmw_create_node(&context, "discovering_node", "/", 0, &security_options);
+  ASSERT_TRUE(nullptr != node);
+  void * conditions[] = {rmw_node_get_graph_guard_condition(node)->data};
+  rmw_guard_conditions_t guard_conditions = {1, conditions};
+  while (true) {
+    ret = rmw_wait(nullptr, &guard_conditions, nullptr, nullptr, nullptr, wait_set, &timeout);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ret = rmw_get_node_names(node, &node_names, &node_namespaces);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    for (size_t i = 0; i < node_names.size; ++i) {
+      if (!strcmp(node_names.data[i], "existing_node")) {
+        break;
+      }
+    }
+  }
+
+  ret = rcutils_string_array_fini(&node_namespaces);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rcutils_string_array_fini(&node_names);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_destroy_wait_set(wait_set);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_destroy_node(node);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_destroy_node(existing_node);
   ASSERT_EQ(RMW_RET_OK, ret);
 }
