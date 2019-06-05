@@ -77,8 +77,6 @@ TEST_F(test_node, discover_existing_node) {
   rmw_node_t * node;
   rmw_wait_set_t * wait_set = rmw_create_wait_set(&context, 1);
   rmw_time_t timeout = {1, 0};
-  rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
-  rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
 
   existing_node = rmw_create_node(&context, "existing_node", "/", 0, &security_options);
   ASSERT_TRUE(nullptr != existing_node);
@@ -94,19 +92,23 @@ TEST_F(test_node, discover_existing_node) {
   while (true) {
     ret = rmw_wait(nullptr, &guard_conditions, nullptr, nullptr, nullptr, wait_set, &timeout);
     ASSERT_EQ(RMW_RET_OK, ret);
+    rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
     ret = rmw_get_node_names(node, &node_names, &node_namespaces);
     ASSERT_EQ(RMW_RET_OK, ret);
-    for (size_t i = 0; i < node_names.size; ++i) {
-      if (!strcmp(node_names.data[i], "existing_node")) {
-        break;
-      }
+    auto end = node_names.data + node_names.size;
+    auto it = std::find_if(node_names.data, end, [](char * data) {
+          return !strcmp(data, "existing_node");
+        });
+    ret = rcutils_string_array_fini(&node_namespaces);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_names);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    if (it != end) {
+      break;
     }
   }
 
-  ret = rcutils_string_array_fini(&node_namespaces);
-  ASSERT_EQ(RMW_RET_OK, ret);
-  ret = rcutils_string_array_fini(&node_names);
-  ASSERT_EQ(RMW_RET_OK, ret);
   ret = rmw_destroy_wait_set(wait_set);
   ASSERT_EQ(RMW_RET_OK, ret);
   ret = rmw_destroy_node(node);

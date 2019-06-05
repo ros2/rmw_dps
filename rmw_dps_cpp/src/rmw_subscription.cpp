@@ -24,7 +24,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
-#include "names_common.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"

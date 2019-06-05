@@ -23,8 +23,8 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 #include "client_service_common.hpp"
-#include "names_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"

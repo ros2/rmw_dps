@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAMES_COMMON_HPP_
-#define NAMES_COMMON_HPP_
+#ifndef RMW_DPS_CPP__NAMES_COMMON_HPP_
+#define RMW_DPS_CPP__NAMES_COMMON_HPP_
 
 #include <string>
 
@@ -24,4 +24,4 @@ std::string _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_
 
 bool _advertise(const rmw_node_t * node, const std::string topic = std::string());
 
-#endif  // NAMES_COMMON_HPP_
+#endif  // RMW_DPS_CPP__NAMES_COMMON_HPP_

@@ -26,6 +26,7 @@
 
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/names_common.hpp"
 #include "rmw_dps_cpp/namespace_prefix.hpp"
 
 class NodeListener;
@@ -80,8 +81,8 @@ public:
     }
   };
 
-  explicit NodeListener(rmw_guard_condition_t * graph_guard_condition)
-  : graph_guard_condition_(graph_guard_condition)
+  explicit NodeListener(const rmw_node_t * node)
+  : node_(node)
   {}
 
   static void
@@ -130,17 +131,27 @@ public:
         continue;
       }
     }
+    if (uuid.empty()) {
+      // ignore invalid advertisement
+      return;
+    }
 
-    if (!uuid.empty()) {
-      Node old_node = listener->discovered_nodes_[uuid];
-      listener->discovered_nodes_[uuid] = node;
-      if (!(old_node == node)) {
-        rmw_ret_t ret = rmw_trigger_guard_condition(listener->graph_guard_condition_);
-        if (ret != RMW_RET_OK) {
-          RCUTILS_LOG_ERROR_NAMED(
-            "rmw_dps_cpp",
-            "failed to trigger guard condition");
-        }
+    // trigger an advertisement for the new node
+    auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
+    if ((listener->discovered_nodes_.find(uuid) == listener->discovered_nodes_.end()) &&
+      (DPS_UUIDCompare(DPS_PublicationGetUUID(impl->advertisement_),
+      DPS_PublicationGetUUID(pub)) != 0))
+    {
+      _advertise(listener->node_);
+    }
+    Node old_node = listener->discovered_nodes_[uuid];
+    listener->discovered_nodes_[uuid] = node;
+    if (!(old_node == node)) {
+      rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
+      if (ret != RMW_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          "rmw_dps_cpp",
+          "failed to trigger guard condition");
       }
     }
   }
@@ -294,7 +305,7 @@ private:
 
   mutable std::mutex mutex_;
   std::map<std::string, Node> discovered_nodes_;
-  rmw_guard_condition_t * graph_guard_condition_;
+  const rmw_node_t * node_;
 };
 
 #endif  // RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_

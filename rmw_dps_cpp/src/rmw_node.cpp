@@ -27,7 +27,7 @@
 
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
-#include "names_common.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 
 extern "C"
 {
@@ -141,7 +141,7 @@ create_node(
       RMW_SET_ERROR_MSG("failed to create discover subscription");
       goto fail;
     }
-    node_impl->listener_ = new NodeListener(node_impl->graph_guard_condition_);
+    node_impl->listener_ = new NodeListener(node_handle);
     ret = DPS_SetSubscriptionData(node_impl->discover_, node_impl->listener_);
     if (ret != DPS_OK) {
       RMW_SET_ERROR_MSG("failed to set discover subscription data");

@@ -21,7 +21,7 @@
 #include "rmw/error_handling.h"
 
 #include "rmw_dps_cpp/custom_node_info.hpp"
-#include "names_common.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 
 std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name)
 {

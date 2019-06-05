@@ -23,7 +23,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_publisher_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
-#include "names_common.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 #include "type_support_common.hpp"
 
 const char * qos_history_string(rmw_qos_history_policy_t history)
