@@ -282,11 +282,12 @@ private:
     if (pos != std::string::npos) {
       pos = pos + strlen(prefix);
       size_t end_pos = topic_str.find("&types=");
+      // See _advertise() for explanation of "/" prefix below
       if (end_pos != std::string::npos) {
-        topic.topic = topic_str.substr(pos, end_pos - pos);
+        topic.topic = std::string("/") + topic_str.substr(pos, end_pos - pos);
         pos = end_pos + strlen("&types=");
       } else {
-        topic.topic = topic_str.substr(pos);
+        topic.topic = std::string("/") + topic_str.substr(pos);
       }
       while (pos != std::string::npos) {
         end_pos = topic_str.find(",", pos);
