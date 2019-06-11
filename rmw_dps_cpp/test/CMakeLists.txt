@@ -1,7 +1,7 @@
 find_package(ament_cmake_gmock REQUIRED)
 find_package(test_msgs REQUIRED)
 
-foreach(TEST test_node test_publisher)
+foreach(TEST test_node test_publisher test_subscription)
   ament_add_gmock(${TEST}
     ${TEST}.cpp
     # Append the directory of librmw_dps_cpp so it is found at test time.

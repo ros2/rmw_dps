@@ -21,6 +21,7 @@ class Listener;
 
 typedef struct CustomSubscriberInfo
 {
+  const rmw_node_t * node_;
   DPS_Subscription * subscription_;
   Listener * listener_;
   void * type_support_;

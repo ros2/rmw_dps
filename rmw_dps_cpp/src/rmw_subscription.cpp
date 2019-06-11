@@ -117,6 +117,7 @@ rmw_create_subscription(
   DPS_Status ret;
 
   info = new CustomSubscriberInfo();
+  info->node_ = node;
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
@@ -195,12 +196,14 @@ rmw_subscription_count_matched_publishers(
   const rmw_subscription_t * subscription,
   size_t * publisher_count)
 {
-  // TODO(malsbat): implement
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(subscription=%p,publisher_count=%p)", __FUNCTION__,
     (void *)subscription, (void *)publisher_count);
 
+  auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
+  auto impl = static_cast<CustomNodeInfo *>(info->node_->data);
+  *publisher_count = impl->listener_->count_publishers(subscription->topic_name);
   return RMW_RET_OK;
 }
 
