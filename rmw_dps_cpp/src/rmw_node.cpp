@@ -55,41 +55,10 @@ destroy_node(DPS_Node * node)
   return RMW_RET_OK;
 }
 
-void
-advertisement_published(
-  DPS_Publication * pub,
-  const DPS_Buffer * bufs, size_t numBufs,
-  DPS_Status status,
-  void * data)
-{
-  (void)pub;
-  (void)bufs;
-  (void)numBufs;
-  DPS_Event * event = reinterpret_cast<DPS_Event *>(data);
-  DPS_SignalEvent(event, status);
-}
-
 rmw_ret_t
 destroy_advertisement(DPS_Publication * pub)
 {
-  // force the expiration of the advertisement
-  // in order to ensure this is delivered to the network use the callback based version of publish
-  DPS_Event * event = DPS_CreateEvent();
-  if (!event) {
-    RMW_SET_ERROR_MSG("failed to allocate DPS_Event");
-    return RMW_RET_ERROR;
-  }
-  DPS_Status ret = DPS_PublishBufs(pub, NULL, 0, -1, advertisement_published, event);
-  if (ret == DPS_OK) {
-    DPS_WaitForEvent(event);
-  } else {
-    // this is non-fatal: the advertisement will expire at its ttl
-    RCUTILS_LOG_ERROR_NAMED(
-      "rmw_dps_cpp",
-      "failed to expire advertisement");
-  }
-  DPS_DestroyEvent(event);
-  ret = DPS_DestroyPublication(pub);
+  rmw_ret_t ret = DPS_DestroyPublication(pub);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to destroy advertisement");
     return RMW_RET_ERROR;
@@ -187,11 +156,6 @@ create_node(
     ret = DPS_SetSubscriptionData(node_impl->discover_, node_impl->listener_);
     if (ret != DPS_OK) {
       RMW_SET_ERROR_MSG("failed to set discover subscription data");
-      goto fail;
-    }
-    ret = DPS_SubscribeExpired(node_impl->discover_, DPS_TRUE);
-    if (ret != DPS_OK) {
-      RMW_SET_ERROR_MSG("failed to enable expired subscription");
       goto fail;
     }
     ret = DPS_Subscribe(node_impl->discover_, NodeListener::onPublication);

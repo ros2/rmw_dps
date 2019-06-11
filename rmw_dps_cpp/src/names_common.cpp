@@ -76,8 +76,8 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
     RMW_SET_ERROR_MSG("failed to initialize advertisement");
     return false;
   }
-  // TODO(malsbat): refresh publication before ttl (one hour below) expires
-  ret = DPS_Publish(impl->advertisement_, nullptr, 0, 360);
+  // TODO(malsbat): enable ttl and refresh publication before ttl expires
+  ret = DPS_Publish(impl->advertisement_, nullptr, 0, 0);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to advertise");
     return false;
