@@ -13,11 +13,14 @@
 // limitations under the License.
 
 #include <rcutils/allocator.h>
+#include <rosidl_generator_c/service_type_support_struct.h>
+#include <test_msgs/srv/empty.h>
 
 #include <chrono>
 
 #include "gmock/gmock.h"
 
+#include "rmw/get_service_names_and_types.h"
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
 
@@ -114,5 +117,46 @@ TEST_F(test_node, discover_existing_node) {
   ret = rmw_destroy_node(node);
   ASSERT_EQ(RMW_RET_OK, ret);
   ret = rmw_destroy_node(existing_node);
+  ASSERT_EQ(RMW_RET_OK, ret);
+}
+
+TEST_F(test_node, get_service_names_and_types) {
+  rmw_ret_t ret;
+  rmw_node_t * node;
+  const rosidl_service_type_support_t * type_support;
+  rmw_service_t * service;
+  rcutils_allocator_t allocator;
+  rmw_names_and_types_t names_and_types;
+  rmw_wait_set_t * wait_set = rmw_create_wait_set(&context, 1);
+  rmw_time_t timeout = {1, 0};
+
+  node = rmw_create_node(&context, "test_node_create", "/", 0, &security_options);
+  ASSERT_TRUE(nullptr != node);
+
+  type_support = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Empty);
+  ASSERT_TRUE(nullptr != type_support);
+
+  service = rmw_create_service(node, type_support, "/test_service",
+      &rmw_qos_profile_default);
+  ASSERT_TRUE(nullptr != service);
+  // wait for advertisements to settle down
+  ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
+  ASSERT_EQ(RMW_RET_TIMEOUT, ret);
+
+  allocator = rcutils_get_default_allocator();
+  names_and_types = rmw_get_zero_initialized_names_and_types();
+  ret = rmw_get_service_names_and_types(node, &allocator, &names_and_types);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ASSERT_EQ(1u, names_and_types.names.size);
+  ASSERT_STREQ("/test_service", names_and_types.names.data[0]);
+  ASSERT_EQ(2u, names_and_types.types[0].size);
+  ASSERT_STREQ("test_msgs__srv::dps_::Empty_Request_", names_and_types.types[0].data[0]);
+  ASSERT_STREQ("test_msgs__srv::dps_::Empty_Response_", names_and_types.types[0].data[1]);
+
+  ret = rmw_names_and_types_fini(&names_and_types);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_destroy_service(node, service);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_destroy_node(node);
   ASSERT_EQ(RMW_RET_OK, ret);
 }

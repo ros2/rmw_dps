@@ -24,6 +24,7 @@
 #include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
 #include "rmw/get_topic_names_and_types.h"
+#include "rmw/get_service_names_and_types.h"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
 
@@ -273,5 +274,26 @@ rmw_get_topic_names_and_types(
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_topic_names_and_types();
   return _copy_data_to_results(topics, allocator, topic_names_and_types);
+}
+
+rmw_ret_t
+rmw_get_service_names_and_types(
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  rmw_names_and_types_t * service_names_and_types)
+{
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s(node=%p,allocator=%p,service_names_and_types=%p)", __FUNCTION__, (void *)node,
+    (void *)allocator, (void *)service_names_and_types);
+
+  rmw_ret_t valid_input = _validate_input(node, allocator, false, service_names_and_types);
+  if (valid_input != RMW_RET_OK) {
+    return valid_input;
+  }
+
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  auto topics = impl->listener_->get_service_names_and_types();
+  return _copy_data_to_results(topics, allocator, service_names_and_types);
 }
 }  // extern "C"

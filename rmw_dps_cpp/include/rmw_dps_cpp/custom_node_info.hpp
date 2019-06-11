@@ -275,6 +275,19 @@ public:
     return names_and_types;
   }
 
+  std::map<std::string, std::set<std::string>>
+  get_service_names_and_types()
+  {
+    std::map<std::string, std::set<std::string>> names_and_types;
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto uuid_node_pair : discovered_nodes_) {
+      for (auto it : uuid_node_pair.second.services) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+    }
+    return names_and_types;
+  }
+
 private:
   static bool
   process_topic_info(const std::string & topic_str, const char * prefix, Topic & topic)

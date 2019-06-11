@@ -64,7 +64,6 @@ add_library(rmw_dps_cpp
   src/rmw_response.cpp
   src/rmw_serialize.cpp
   src/rmw_service.cpp
-  src/rmw_service_names_and_types.cpp
   src/rmw_service_server_is_available.cpp
   src/rmw_subscription.cpp
   src/rmw_take.cpp
