@@ -23,43 +23,10 @@
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
 
-class test_publisher : public ::testing::Test
+#include "test_fixtures.hpp"
+
+class test_publisher : public test_fixture_node
 {
-protected:
-  void
-  SetUp() override
-  {
-    rmw_ret_t ret;
-    init_options = rmw_get_zero_initialized_init_options();
-    ret = rmw_init_options_init(&init_options, rcutils_get_default_allocator());
-    ASSERT_EQ(RMW_RET_OK, ret);
-    context = rmw_get_zero_initialized_context();
-    context.implementation_identifier = rmw_get_implementation_identifier();
-    ret = rmw_init(&init_options, &context);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    security_options = rmw_get_default_node_security_options();
-    node = rmw_create_node(&context, "test_publisher_node", "/", 0, &security_options);
-    ASSERT_TRUE(nullptr != node);
-  }
-
-  void
-  TearDown() override
-  {
-    rmw_ret_t ret;
-    ret = rmw_destroy_node(node);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ret = rmw_shutdown(&context);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ret = rmw_context_fini(&context);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ret = rmw_init_options_fini(&init_options);
-    ASSERT_EQ(RMW_RET_OK, ret);
-  }
-
-  rmw_init_options_t init_options;
-  rmw_context_t context;
-  rmw_node_security_options_t security_options;
-  rmw_node_t * node;
 };
 
 TEST_F(test_publisher, count_matched_subscriptions) {
