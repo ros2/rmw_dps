@@ -159,6 +159,7 @@ rmw_create_publisher(
   DPS_Status ret;
 
   info = new CustomPublisherInfo();
+  info->node_ = node;
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
@@ -227,7 +228,6 @@ rmw_publisher_count_matched_subscriptions(
   const rmw_publisher_t * publisher,
   size_t * subscription_count)
 {
-  // TODO(malsbat): implement
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(publisher=%p,subscription_count=%p)", __FUNCTION__, (void *)publisher,
@@ -236,6 +236,9 @@ rmw_publisher_count_matched_subscriptions(
   RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(subscription_count, RMW_RET_INVALID_ARGUMENT);
 
+  auto info = static_cast<CustomPublisherInfo *>(publisher->data);
+  auto impl = static_cast<CustomNodeInfo *>(info->node_->data);
+  *subscription_count = impl->listener_->count_subscribers(publisher->topic_name);
   return RMW_RET_OK;
 }
 

@@ -24,6 +24,7 @@
 
 typedef struct CustomPublisherInfo
 {
+  const rmw_node_t * node_;
   DPS_Publication * publication_;
   void * type_support_;
   const char * typesupport_identifier_;
