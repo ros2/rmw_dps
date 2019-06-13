@@ -16,6 +16,7 @@
 #define RMW_DPS_CPP__CUSTOM_CLIENT_INFO_HPP_
 
 #include <dps/dps.h>
+#include <dps/event.h>
 
 #include "rmw/rmw.h"
 
@@ -25,6 +26,7 @@ typedef struct CustomClientInfo
 {
   void * request_type_support_;
   void * response_type_support_;
+  DPS_Event * event_;
   DPS_Publication * request_publication_;
   Listener * response_listener_;
   DPS_Node * node_;
