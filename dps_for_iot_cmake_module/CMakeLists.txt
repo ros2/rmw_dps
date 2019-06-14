@@ -36,6 +36,8 @@ ament_package(
 include(ExternalProject)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(VARIANT "debug")
+elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+  set(VARIANT "min-size-release")
 else()
   set(VARIANT "release")
 endif()
@@ -48,7 +50,7 @@ ExternalProject_Add(dps_for_iot
   PREFIX dps_for_iot
   URL https://github.com/intel/dps-for-iot/archive/master.zip
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/${DEF_FILE}
+  BUILD_COMMAND scons -C ${CMAKE_CURRENT_BINARY_DIR}/dps_for_iot/src/dps_for_iot CC=${CMAKE_C_COMPILER} CFLAGS=${CMAKE_C_FLAGS} CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=${CMAKE_CXX_FLAGS} variant=${VARIANT} transport=udp bindings=none DEF_FILE=${CMAKE_CURRENT_SOURCE_DIR}/${DEF_FILE}
   BUILD_ALWAYS TRUE
   INSTALL_COMMAND "")
 

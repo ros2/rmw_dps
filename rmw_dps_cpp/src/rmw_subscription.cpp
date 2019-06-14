@@ -260,4 +260,21 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
   return RMW_RET_OK;
 }
+
+rmw_ret_t
+rmw_subscription_get_actual_qos(
+  const rmw_subscription_t * subscription,
+  rmw_qos_profile_t * qos)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+
+  /* Set to best-effort & volatile since QoS features are not supported by DPS at the moment. */
+  qos->history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  qos->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  qos->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  qos->depth = 1;
+
+  return RMW_RET_OK;
+}
 }  // extern "C"

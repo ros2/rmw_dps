@@ -22,6 +22,7 @@
 #include "rmw_dps_cpp/CborStream.hpp"
 #include "rmw_dps_cpp/custom_publisher_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "publish_common.hpp"
 #include "ros_message_serialization.hpp"
 
 extern "C"
@@ -56,7 +57,7 @@ rmw_publish(
   if (_serialize_ros_message(ros_message, ser, info->type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status ret = DPS_Publish(info->publication_, ser.data(), ser.size(), 0);
+    DPS_Status ret = publish(info->publication_, ser.data(), ser.size(), info->event_);
     if (ret == DPS_OK) {
       returnedValue = RMW_RET_OK;
     }
@@ -87,9 +88,8 @@ rmw_publish_serialized_message(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     info, "publisher info pointer is null", return RMW_RET_ERROR);
 
-  DPS_Status ret = DPS_Publish(
-    info->publication_, reinterpret_cast<uint8_t *>(serialized_message->buffer),
-    serialized_message->buffer_length, 0);
+  DPS_Status ret = publish(info->publication_, serialized_message->buffer,
+      serialized_message->buffer_length, info->event_);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("cannot publish data");
     return RMW_RET_ERROR;
