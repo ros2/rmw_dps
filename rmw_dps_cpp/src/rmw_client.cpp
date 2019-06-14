@@ -119,6 +119,11 @@ rmw_create_client(
     _register_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
   }
 
+  info->event_ = DPS_CreateEvent();
+  if (!info->event_) {
+    RMW_SET_ERROR_MSG("failed to create event");
+    goto fail;
+  }
   info->request_publication_ = DPS_CreatePublication(impl->node_);
   if (!info->request_publication_) {
     RMW_SET_ERROR_MSG("failed to create publication");
@@ -171,6 +176,9 @@ fail:
   // TODO(malsbat): _delete_typesupport ?
   if (info->request_publication_) {
     DPS_DestroyPublication(info->request_publication_);
+  }
+  if (info->event_) {
+    DPS_DestroyEvent(info->event_);
   }
   delete info->response_listener_;
   delete info;
@@ -225,6 +233,9 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     // TODO(malsbat): _delete_typesupport ?
     if (info->request_publication_) {
       DPS_DestroyPublication(info->request_publication_);
+    }
+    if (info->event_) {
+      DPS_DestroyEvent(info->event_);
     }
   }
   delete info;

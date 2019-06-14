@@ -24,6 +24,7 @@
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/custom_service_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "publish_common.hpp"
 #include "ros_message_serialization.hpp"
 
 extern "C"
@@ -58,7 +59,7 @@ rmw_send_request(
   if (_serialize_ros_message(ros_request, ser, info->request_type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status ret = DPS_Publish(info->request_publication_, ser.data(), ser.size(), 0);
+    DPS_Status ret = publish(info->request_publication_, ser.data(), ser.size(), info->event_);
     if (ret == DPS_OK) {
       *sequence_id = DPS_PublicationGetSequenceNum(info->request_publication_);
       returnedValue = RMW_RET_OK;

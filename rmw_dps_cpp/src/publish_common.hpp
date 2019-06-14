@@ -1,4 +1,4 @@
-// Copyright 2018 Intel Corporation All rights reserved.
+// Copyright 2019 Intel Corporation All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
-#define RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
+#ifndef PUBLISH_COMMON_HPP_
+#define PUBLISH_COMMON_HPP_
 
 #include <dps/dps.h>
 #include <dps/event.h>
 
-#include <mutex>
-#include <queue>
+DPS_Status
+publish(DPS_Publication * pub, const uint8_t * data, size_t size, DPS_Event * event);
 
-#include "rmw/rmw.h"
-
-typedef struct CustomPublisherInfo
-{
-  DPS_Event * event_;
-  DPS_Publication * publication_;
-  void * type_support_;
-  const char * typesupport_identifier_;
-} CustomPublisherInfo;
-
-#endif  // RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_
+#endif  // PUBLISH_COMMON_HPP_
