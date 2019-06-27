@@ -176,12 +176,13 @@ fail:
   }
   // TODO(malsbat): _delete_typesupport ?
   if (info->request_publication_) {
-    DPS_DestroyPublication(info->request_publication_);
+    DPS_DestroyPublication(info->request_publication_, [](DPS_Publication * pub) {
+        delete reinterpret_cast<Listener *>(DPS_GetPublicationData(pub));
+      });
   }
   if (info->event_) {
     DPS_DestroyEvent(info->event_);
   }
-  delete info->response_listener_;
   delete info;
 
   if (rmw_client) {
@@ -233,7 +234,9 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     }
     // TODO(malsbat): _delete_typesupport ?
     if (info->request_publication_) {
-      DPS_DestroyPublication(info->request_publication_);
+      DPS_DestroyPublication(info->request_publication_, [](DPS_Publication * pub) {
+          delete reinterpret_cast<Listener *>(DPS_GetPublicationData(pub));
+        });
     }
     if (info->event_) {
       DPS_DestroyEvent(info->event_);

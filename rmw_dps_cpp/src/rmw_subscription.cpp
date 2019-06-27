@@ -173,9 +173,10 @@ rmw_create_subscription(
 
 fail:
   if (info->subscription_) {
-    DPS_DestroySubscription(info->subscription_);
+    DPS_DestroySubscription(info->subscription_, [](DPS_Subscription * sub) {
+        delete reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+      });
   }
-  delete info->listener_;
   if (info->type_support_) {
     _delete_typesupport(info->type_support_, info->typesupport_identifier_);
   }
@@ -238,9 +239,10 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
   if (info) {
     if (info->subscription_) {
-      DPS_DestroySubscription(info->subscription_);
+      DPS_DestroySubscription(info->subscription_, [](DPS_Subscription * sub) {
+          delete reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+        });
     }
-    delete info->listener_;
     if (info->type_support_) {
       auto impl = static_cast<CustomNodeInfo *>(node->data);
       if (!impl) {

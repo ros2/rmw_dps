@@ -163,9 +163,10 @@ rmw_create_service(
 
 fail:
   if (info->request_subscription_) {
-    DPS_DestroySubscription(info->request_subscription_);
+    DPS_DestroySubscription(info->request_subscription_, [](DPS_Subscription * sub) {
+        delete reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+      });
   }
-  delete info->request_listener_;
   if (info->request_type_support_) {
     _unregister_type(impl->node_, info->request_type_support_, info->typesupport_identifier_);
   }
@@ -214,9 +215,10 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
 
   if (info) {
     if (info->request_subscription_) {
-      DPS_DestroySubscription(info->request_subscription_);
+      DPS_DestroySubscription(info->request_subscription_, [](DPS_Subscription * sub) {
+          delete reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+        });
     }
-    delete info->request_listener_;
     if (info->request_type_support_) {
       _unregister_type(info->node_, info->request_type_support_,
         info->typesupport_identifier_);

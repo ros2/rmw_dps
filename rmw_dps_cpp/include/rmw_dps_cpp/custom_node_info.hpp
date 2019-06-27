@@ -41,6 +41,7 @@ typedef struct CustomNodeInfo
   DPS_Publication * advertisement_;
   DPS_Subscription * discover_;
   NodeListener * listener_;
+  std::mutex mutex_;
 } CustomNodeInfo;
 
 inline bool
@@ -136,18 +137,16 @@ public:
       return;
     }
 
-    auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
-    // trigger an advertisement for the new node
-    if ((listener->discovered_nodes_.find(uuid) == listener->discovered_nodes_.end()) &&
-      (DPS_UUIDCompare(DPS_PublicationGetUUID(impl->advertisement_),
-      DPS_PublicationGetUUID(pub)) != 0))
-    {
-      _advertise(listener->node_);
+    bool trigger;
+    if (DPS_PublicationGetTTL(pub) < 0) {
+      trigger = listener->discovered_nodes_.erase(uuid);
+    } else {
+      Node old_node = listener->discovered_nodes_[uuid];
+      listener->discovered_nodes_[uuid] = node;
+      trigger = !(old_node == node);
     }
-    Node old_node = listener->discovered_nodes_[uuid];
-    listener->discovered_nodes_[uuid] = node;
-    bool trigger = !(old_node == node);
     if (trigger) {
+      auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
       rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
       if (ret != RMW_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(

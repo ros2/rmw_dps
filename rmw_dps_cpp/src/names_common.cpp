@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <dps/event.h>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -23,23 +24,27 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
 
-std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name)
+std::string
+_get_dps_topic_name(size_t domain_id, const char * ros_topic_name)
 {
   // Valid topic names start with a separator so prefix the domain_id to separate nodes
   return std::to_string(domain_id) + ros_topic_name;
 }
 
-std::string _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name)
+std::string
+_get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name)
 {
   // Valid topic names start with a separator so prefix the domain_id to separate nodes
   return std::to_string(domain_id) + ros_topic_name;
 }
 
-bool _advertise(const rmw_node_t * node, const std::string topic)
+bool
+_advertise(const rmw_node_t * node, const std::string topic)
 {
   DPS_Status ret;
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
+  std::lock_guard<std::mutex> lock(impl->mutex_);
   std::vector<std::string> & topics = impl->advertisement_topics_;
   if (!impl->advertisement_) {
     topics.push_back(std::to_string(impl->domain_id_) + dps_uuid_prefix + impl->uuid_);
@@ -58,7 +63,7 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
     [](const std::string & s) -> const char * {return s.c_str();});
 
   if (impl->advertisement_) {
-    ret = DPS_DestroyPublication(impl->advertisement_);
+    ret = DPS_DestroyPublication(impl->advertisement_, nullptr);
     if (ret != DPS_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_dps_cpp",
@@ -76,11 +81,60 @@ bool _advertise(const rmw_node_t * node, const std::string topic)
     RMW_SET_ERROR_MSG("failed to initialize advertisement");
     return false;
   }
-  // TODO(malsbat): enable ttl and refresh publication before ttl expires
-  ret = DPS_Publish(impl->advertisement_, nullptr, 0, 0);
+  // TODO(malsbat): refresh publication before ttl (one hour below) expires
+  ret = DPS_Publish(impl->advertisement_, nullptr, 0, 360);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to advertise");
     return false;
   }
   return true;
+}
+
+void
+_advertisement_published(
+  DPS_Publication * pub,
+  const DPS_Buffer * bufs, size_t numBufs,
+  DPS_Status status,
+  void * data)
+{
+  (void)pub;
+  (void)bufs;
+  (void)numBufs;
+  DPS_Event * event = reinterpret_cast<DPS_Event *>(data);
+  DPS_SignalEvent(event, status);
+}
+
+rmw_ret_t
+_destroy_advertisement(const rmw_node_t * node)
+{
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  std::lock_guard<std::mutex> lock(impl->mutex_);
+  if (!impl->advertisement_) {
+    return RMW_RET_OK;
+  }
+  // force the expiration of the advertisement
+  // in order to ensure this is delivered to the network use the callback based version of publish
+  DPS_Event * event = DPS_CreateEvent();
+  if (!event) {
+    RMW_SET_ERROR_MSG("failed to allocate DPS_Event");
+    return RMW_RET_ERROR;
+  }
+  DPS_Status ret = DPS_PublishBufs(impl->advertisement_, nullptr, 0, -1, _advertisement_published,
+      event);
+  if (ret == DPS_OK) {
+    DPS_WaitForEvent(event);
+  } else {
+    // this is non-fatal: the advertisement will expire at its ttl
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_dps_cpp",
+      "failed to expire advertisement");
+  }
+  DPS_DestroyEvent(event);
+  ret = DPS_DestroyPublication(impl->advertisement_, nullptr);
+  if (ret != DPS_OK) {
+    RMW_SET_ERROR_MSG("failed to destroy advertisement");
+    return RMW_RET_ERROR;
+  }
+  impl->advertisement_ = nullptr;
+  return RMW_RET_OK;
 }

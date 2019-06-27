@@ -23,5 +23,6 @@ std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name);
 std::string _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name);
 
 bool _advertise(const rmw_node_t * node, const std::string topic = std::string());
+rmw_ret_t _destroy_advertisement(const rmw_node_t * node);
 
 #endif  // RMW_DPS_CPP__NAMES_COMMON_HPP_

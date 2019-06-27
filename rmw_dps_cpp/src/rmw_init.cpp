@@ -36,7 +36,7 @@ rmw_init_options_init(rmw_init_options_t * init_options, rcutils_allocator_t all
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(init_options, RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ALLOCATOR(&allocator, return RMW_RET_INVALID_ARGUMENT);
-  if (NULL != init_options->implementation_identifier) {
+  if (nullptr != init_options->implementation_identifier) {
     RMW_SET_ERROR_MSG("expected zero-initialized init_options");
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -57,7 +57,7 @@ rmw_init_options_copy(const rmw_init_options_t * src, rmw_init_options_t * dst)
     src->implementation_identifier,
     intel_dps_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  if (NULL != dst->implementation_identifier) {
+  if (nullptr != dst->implementation_identifier) {
     RMW_SET_ERROR_MSG("expected zero-initialized dst");
     return RMW_RET_INVALID_ARGUMENT;
   }

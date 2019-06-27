@@ -55,17 +55,6 @@ destroy_node(DPS_Node * node)
   return RMW_RET_OK;
 }
 
-rmw_ret_t
-destroy_advertisement(DPS_Publication * pub)
-{
-  rmw_ret_t ret = DPS_DestroyPublication(pub);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to destroy advertisement");
-    return RMW_RET_ERROR;
-  }
-  return RMW_RET_OK;
-}
-
 rmw_node_t *
 create_node(
   rmw_context_t * context,
@@ -137,7 +126,7 @@ create_node(
     RMW_SET_ERROR_MSG("failed to allocate DPS_Node");
     goto fail;
   }
-  ret = DPS_StartNode(node_impl->node_, DPS_MCAST_PUB_ENABLE_SEND | DPS_MCAST_PUB_ENABLE_RECV, 0);
+  ret = DPS_StartNode(node_impl->node_, DPS_MCAST_SUB_ENABLE_RECV | DPS_MCAST_SUB_ENABLE_SEND, 0);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to start DPS_Node");
     goto fail;
@@ -158,6 +147,11 @@ create_node(
       RMW_SET_ERROR_MSG("failed to set discover subscription data");
       goto fail;
     }
+    ret = DPS_SubscribeExpired(node_impl->discover_, DPS_TRUE);
+    if (ret != DPS_OK) {
+      RMW_SET_ERROR_MSG("failed to enable expired subscription");
+      goto fail;
+    }
     ret = DPS_Subscribe(node_impl->discover_, NodeListener::onPublication);
     if (ret != DPS_OK) {
       RMW_SET_ERROR_MSG("failed to discover");
@@ -172,6 +166,28 @@ create_node(
 
   return node_handle;
 fail:
+  if (RMW_RET_OK != _destroy_advertisement(node_handle)) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_dps_cpp",
+      "failed to destroy advertisement during error handling");
+  }
+  if (node_impl->discover_) {
+    ret = DPS_DestroySubscription(node_impl->discover_, [](DPS_Subscription * sub) {
+          delete reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
+        });
+    if (ret != DPS_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_dps_cpp",
+        "failed to destroy discover subscription during error handling");
+    }
+  }
+  if (node_impl->node_) {
+    if (RMW_RET_OK != destroy_node(node_impl->node_)) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_dps_cpp",
+        "failed to destroy node during error handling");
+    }
+  }
   if (node_handle) {
     rmw_free(const_cast<char *>(node_handle->namespace_));
     node_handle->namespace_ = nullptr;
@@ -179,31 +195,6 @@ fail:
     node_handle->name = nullptr;
   }
   rmw_node_free(node_handle);
-  if (node_impl->discover_) {
-    ret = DPS_DestroySubscription(node_impl->discover_);
-    if (ret != DPS_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to destroy discover subscription during error handling");
-    }
-  }
-  delete node_impl->listener_;
-  if (node_impl->advertisement_) {
-    rmw_ret_t ret = destroy_advertisement(node_impl->advertisement_);
-    if (ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to destroy advertisement during error handling");
-    }
-  }
-  if (node_impl->node_) {
-    rmw_ret_t ret = destroy_node(node_impl->node_);
-    if (ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to destroy node during error handling");
-    }
-  }
   delete node_impl;
   if (graph_guard_condition) {
     rmw_ret_t ret = rmw_destroy_guard_condition(graph_guard_condition);
@@ -232,12 +223,12 @@ rmw_create_node(
     __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security,
     security_options->security_root_path);
 
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
     intel_dps_identifier,
-    return NULL);
+    return nullptr);
 
   if (!name) {
     RMW_SET_ERROR_MSG("name is null");
@@ -275,22 +266,16 @@ rmw_destroy_node(rmw_node_t * node)
     return RMW_RET_ERROR;
   }
 
-  rmw_free(const_cast<char *>(node->name));
-  node->name = nullptr;
-  rmw_free(const_cast<char *>(node->namespace_));
-  node->namespace_ = nullptr;
-  rmw_node_free(node);
-
-  if (impl->discover_) {
-    if (DPS_OK != DPS_DestroySubscription(impl->discover_)) {
-      RMW_SET_ERROR_MSG("failed to destroy discover subscription");
-      result_ret = RMW_RET_ERROR;
-    }
+  if (RMW_RET_OK != _destroy_advertisement(node)) {
+    RMW_SET_ERROR_MSG("failed to destroy advertisement");
+    result_ret = RMW_RET_ERROR;
   }
-  delete impl->listener_;
-  if (impl->advertisement_) {
-    if (RMW_RET_OK != destroy_advertisement(impl->advertisement_)) {
-      RMW_SET_ERROR_MSG("failed to destroy advertisement");
+  if (impl->discover_) {
+    if (DPS_OK != DPS_DestroySubscription(impl->discover_, [](DPS_Subscription * sub) {
+        delete reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
+      }))
+    {
+      RMW_SET_ERROR_MSG("failed to destroy discover subscription");
       result_ret = RMW_RET_ERROR;
     }
   }
@@ -300,12 +285,15 @@ rmw_destroy_node(rmw_node_t * node)
       result_ret = RMW_RET_ERROR;
     }
   }
-
+  rmw_free(const_cast<char *>(node->name));
+  node->name = nullptr;
+  rmw_free(const_cast<char *>(node->namespace_));
+  node->namespace_ = nullptr;
+  rmw_node_free(node);
   if (RMW_RET_OK != rmw_destroy_guard_condition(impl->graph_guard_condition_)) {
     RMW_SET_ERROR_MSG("failed to destroy graph guard condition");
     result_ret = RMW_RET_ERROR;
   }
-
   delete impl;
 
   return result_ret;

@@ -36,7 +36,7 @@ public:
   {
     ret_ = DPS_OK;
     size_ = 0;
-    if (DPS_TxBufferInit(&buffer_, NULL, hint) != DPS_OK) {
+    if (DPS_TxBufferInit(&buffer_, nullptr, hint) != DPS_OK) {
       throw std::bad_alloc();
     }
   }
@@ -48,7 +48,7 @@ public:
   {
     ret_ = other.ret_;
     size_ = other.size_;
-    if (DPS_TxBufferInit(&buffer_, NULL, DPS_TxBufferCapacity(&other.buffer_)) != DPS_OK) {
+    if (DPS_TxBufferInit(&buffer_, nullptr, DPS_TxBufferCapacity(&other.buffer_)) != DPS_OK) {
       throw std::bad_alloc();
     }
     DPS_TxBufferAppend(&buffer_, other.buffer_.base, DPS_TxBufferUsed(&other.buffer_));
@@ -69,7 +69,7 @@ public:
       DPS_TxBufferFree(&buffer_);
       ret_ = other.ret_;
       size_ = other.size_;
-      if (DPS_TxBufferInit(&buffer_, NULL, DPS_TxBufferCapacity(&other.buffer_)) != DPS_OK) {
+      if (DPS_TxBufferInit(&buffer_, nullptr, DPS_TxBufferCapacity(&other.buffer_)) != DPS_OK) {
         throw std::bad_alloc();
       }
       DPS_TxBufferAppend(&buffer_, other.buffer_.base, DPS_TxBufferUsed(&other.buffer_));
@@ -512,7 +512,7 @@ private:
   {
     size_t size = end - begin;
     DPS_TxBuffer tmp;
-    if (DPS_TxBufferInit(&tmp, NULL, size) != DPS_OK) {
+    if (DPS_TxBufferInit(&tmp, nullptr, size) != DPS_OK) {
       throw std::bad_alloc();
     }
     DPS_TxBufferAppend(&tmp, begin, size);

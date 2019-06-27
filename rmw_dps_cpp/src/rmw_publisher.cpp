@@ -214,7 +214,7 @@ rmw_create_publisher(
 fail:
   _delete_typesupport(info->type_support_, info->typesupport_identifier_);
   if (info->publication_) {
-    DPS_DestroyPublication(info->publication_);
+    DPS_DestroyPublication(info->publication_, nullptr);
   }
   if (info->event_) {
     DPS_DestroyEvent(info->event_);
@@ -280,7 +280,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
   if (info) {
     if (info->publication_) {
-      DPS_DestroyPublication(info->publication_);
+      DPS_DestroyPublication(info->publication_, nullptr);
     }
     if (info->event_) {
       DPS_DestroyEvent(info->event_);

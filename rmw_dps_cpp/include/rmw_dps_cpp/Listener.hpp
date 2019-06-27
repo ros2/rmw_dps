@@ -29,7 +29,7 @@
 
 struct PublicationDeleter
 {
-  void operator()(DPS_Publication * pub) {DPS_DestroyPublication(pub);}
+  void operator()(DPS_Publication * pub) {DPS_DestroyPublication(pub, nullptr);}
 };
 
 typedef std::unique_ptr<DPS_Publication, PublicationDeleter> Publication;
