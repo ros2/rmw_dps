@@ -69,7 +69,7 @@ rmw_service_server_is_available(
   }
   std::string topic = DPS_PublicationGetTopic(client_info->request_publication_, 0);
   // Remove domain_id from DPS topic before counting services
-  *is_available = impl->listener_->count_services(&topic[topic.find('/') + 1]) > 0;
+  *is_available = impl->listener_->count_services(&topic[topic.find('/')]) > 0;
   return RMW_RET_OK;
 }
 }  // extern "C"
