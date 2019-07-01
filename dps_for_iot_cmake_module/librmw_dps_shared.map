@@ -67,6 +67,7 @@
     DPS_LogBytes;
     DPS_MemoryKeyStoreHandle;
     DPS_NodeAddrToString;
+    DPS_UpdateInboundInterests;
     DPS_PublicationAddSubId;
     DPS_PublicationGetNode;
     DPS_PublicationGetNumTopics;

@@ -16,6 +16,7 @@
 #define RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_
 
 #include <dps/dps.h>
+#include <dps/private/dps.h>
 #include <algorithm>
 #include <map>
 #include <mutex>
@@ -94,6 +95,7 @@ public:
       "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)sub, (void *)pub, payload, len);
 
     NodeListener * listener = reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
+    auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
     std::lock_guard<std::mutex> lock(listener->mutex_);
     std::string uuid;
     Node node;
@@ -118,6 +120,9 @@ public:
       }
       Topic subscriber;
       if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
+        std::string dps_topic = _get_dps_topic_name(impl->domain_id_, subscriber.topic.c_str());
+        const char * ctopic = dps_topic.c_str();
+        DPS_UpdateInboundInterests(pub, &ctopic, 1);
         node.subscribers.push_back(subscriber);
         continue;
       }
@@ -128,6 +133,9 @@ public:
       }
       Topic service;
       if (process_topic_info(topic, dps_service_prefix, service)) {
+        std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service.topic.c_str());
+        const char * ctopic = dps_topic.c_str();
+        DPS_UpdateInboundInterests(pub, &ctopic, 1);
         node.services.push_back(service);
         continue;
       }
@@ -146,9 +154,7 @@ public:
       trigger = !(old_node == node);
     }
     if (trigger) {
-      auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
-      rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
-      if (ret != RMW_RET_OK) {
+      if (RMW_RET_OK != rmw_trigger_guard_condition(impl->graph_guard_condition_)) {
         RCUTILS_LOG_ERROR_NAMED(
           "rmw_dps_cpp",
           "failed to trigger guard condition");

@@ -38,6 +38,14 @@ _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name)
   return std::to_string(domain_id) + ros_topic_name;
 }
 
+void
+_advertisement_ack_handler(DPS_Publication * pub, uint8_t * payload, size_t len)
+{
+  (void)pub;
+  (void)payload;
+  (void)len;
+}
+
 bool
 _advertise(const rmw_node_t * node, const std::string topic)
 {
@@ -76,7 +84,7 @@ _advertise(const rmw_node_t * node, const std::string topic)
     return false;
   }
   ret = DPS_InitPublication(impl->advertisement_, &ctopics[0], ctopics.size(), DPS_FALSE,
-      nullptr, nullptr);
+      nullptr, _advertisement_ack_handler);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize advertisement");
     return false;
