@@ -155,7 +155,7 @@ rmw_create_publisher(
   std::string dps_topic = _get_dps_topic_name(impl->domain_id_, topic_name);
   const char * topic = dps_topic.c_str();
   rmw_publisher_t * rmw_publisher = nullptr;
-  std::string advertisement;
+  rmw_dps_cpp::cbor::TxStream ser;
   DPS_Status ret;
 
   info = new CustomPublisherInfo();
@@ -201,11 +201,14 @@ rmw_create_publisher(
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
 
-  // DPS does not allow empty topic segments "=/" from topic_name below, so use &topic_name[1]
-  advertisement = std::to_string(impl->domain_id_) + dps_publisher_prefix + &topic_name[1] +
-    "&types=" + type_name;
-  if (!_advertise(node, advertisement)) {
-    RMW_SET_ERROR_MSG("failed to advertise");
+  // TODO(malsbat) remove advertisement topics when sub/pub/svc is destroyed
+  impl->discovery_payload_.push_back(dps_publisher_prefix + std::string(topic_name) +
+    "&types=" + type_name);
+  ser << impl->discovery_payload_;
+  ret = DPS_DiscoveryPublish(impl->discovery_svc_, ser.data(), ser.size(),
+      NodeListener::onDiscovery);
+  if (ret != DPS_OK) {
+    RMW_SET_ERROR_MSG("failed to publish to discovery");
     goto fail;
   }
 

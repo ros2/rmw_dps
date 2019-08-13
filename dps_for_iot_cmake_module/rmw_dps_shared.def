@@ -34,6 +34,7 @@ DPS_CBOR2JSON
 DPS_CopyAddress
 DPS_CopyPublication
 DPS_CreateAddress
+DPS_CreateDiscoveryService
 DPS_CreateEvent
 DPS_CreateKeyStore
 DPS_CreateMemoryKeyStore
@@ -43,6 +44,7 @@ DPS_CreateRegistrationList
 DPS_CreateSubscription
 DPS_Debug
 DPS_DestroyAddress
+DPS_DestroyDiscoveryService
 DPS_DestroyEvent
 DPS_DestroyKeyStore
 DPS_DestroyMemoryKeyStore
@@ -50,8 +52,10 @@ DPS_DestroyNode
 DPS_DestroyPublication
 DPS_DestroyRegistrationList
 DPS_DestroySubscription
+DPS_DiscoveryPublish
 DPS_ErrTxt
 DPS_GenerateUUID
+DPS_GetDiscoveryServiceData
 DPS_GetEventData
 DPS_GetKeyStoreData
 DPS_GetListenAddress
@@ -69,7 +73,6 @@ DPS_Log
 DPS_LogBytes
 DPS_MemoryKeyStoreHandle
 DPS_NodeAddrToString
-DPS_UpdateInboundInterests
 DPS_PublicationAddSubId
 DPS_PublicationGetNode
 DPS_PublicationGetNumTopics
@@ -95,6 +98,7 @@ DPS_SetAddress
 DPS_SetCA
 DPS_SetCertificate
 DPS_SetContentKey
+DPS_SetDiscoveryServiceData
 DPS_SetEventData
 DPS_SetKey
 DPS_SetKeyAndId
@@ -117,8 +121,8 @@ DPS_TxBufferAppend
 DPS_TxBufferFree
 DPS_TxBufferInit
 DPS_TxBufferToRx
-DPS_UUIDCompare
-DPS_UUIDToString
 DPS_Unlink
 DPS_UnlinkFrom
+DPS_UUIDCompare
+DPS_UUIDToString
 DPS_WaitForEvent

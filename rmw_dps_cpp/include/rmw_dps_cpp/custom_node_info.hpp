@@ -15,8 +15,8 @@
 #ifndef RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_
 #define RMW_DPS_CPP__CUSTOM_NODE_INFO_HPP_
 
+#include <dps/discovery.h>
 #include <dps/dps.h>
-#include <dps/private/dps.h>
 #include <algorithm>
 #include <map>
 #include <mutex>
@@ -27,6 +27,7 @@
 
 #include "rmw/rmw.h"
 
+#include "rmw_dps_cpp/CborStream.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
 #include "rmw_dps_cpp/namespace_prefix.hpp"
 
@@ -38,9 +39,8 @@ typedef struct CustomNodeInfo
   std::string uuid_;
   rmw_guard_condition_t * graph_guard_condition_;
   size_t domain_id_;
-  std::vector<std::string> advertisement_topics_;
-  DPS_Publication * advertisement_;
-  DPS_Subscription * discover_;
+  std::vector<std::string> discovery_payload_;
+  DPS_DiscoveryService * discovery_svc_;
   NodeListener * listener_;
   std::mutex mutex_;
 } CustomNodeInfo;
@@ -66,8 +66,6 @@ public:
   };
   struct Node
   {
-    Node()
-    : namespace_("/") {}
     std::string name;
     std::string namespace_;
     std::vector<Topic> subscribers;
@@ -88,19 +86,23 @@ public:
   {}
 
   static void
-  onPublication(DPS_Subscription * sub, const DPS_Publication * pub, uint8_t * payload, size_t len)
+  onDiscovery(DPS_DiscoveryService * service, uint8_t * payload, size_t len)
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)sub, (void *)pub, payload, len);
+      "%s(service=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)service, payload, len);
 
-    NodeListener * listener = reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
+    NodeListener * listener =
+      reinterpret_cast<NodeListener *>(DPS_GetDiscoveryServiceData(service));
     auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
     std::lock_guard<std::mutex> lock(listener->mutex_);
     std::string uuid;
     Node node;
-    for (size_t i = 0; i < DPS_PublicationGetNumTopics(pub); ++i) {
-      std::string topic = DPS_PublicationGetTopic(pub, i);
+    rmw_dps_cpp::cbor::RxStream deser(payload, len);
+    std::vector<std::string> topics;
+    deser >> topics;
+    for (size_t i = 0; i < topics.size(); ++i) {
+      std::string topic = topics[i];
       size_t pos;
       pos = topic.find(dps_uuid_prefix);
       if (pos != std::string::npos) {
@@ -109,8 +111,7 @@ public:
       }
       pos = topic.find(dps_namespace_prefix);
       if (pos != std::string::npos) {
-        // See _advertise() for explanation of "/" prefix below
-        node.namespace_ = std::string("/") + topic.substr(pos + strlen(dps_namespace_prefix));
+        node.namespace_ = topic.substr(pos + strlen(dps_namespace_prefix));
         continue;
       }
       pos = topic.find(dps_name_prefix);
@@ -120,9 +121,6 @@ public:
       }
       Topic subscriber;
       if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
-        std::string dps_topic = _get_dps_topic_name(impl->domain_id_, subscriber.topic.c_str());
-        const char * ctopic = dps_topic.c_str();
-        DPS_UpdateInboundInterests(pub, &ctopic, 1);
         node.subscribers.push_back(subscriber);
         continue;
       }
@@ -133,9 +131,6 @@ public:
       }
       Topic service;
       if (process_topic_info(topic, dps_service_prefix, service)) {
-        std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service.topic.c_str());
-        const char * ctopic = dps_topic.c_str();
-        DPS_UpdateInboundInterests(pub, &ctopic, 1);
         node.services.push_back(service);
         continue;
       }
@@ -145,8 +140,9 @@ public:
       return;
     }
 
+    // TODO(malsbat) when to erase discovered_nodes_ now?
     bool trigger;
-    if (DPS_PublicationGetTTL(pub) < 0) {
+    if (false) {  // DPS_PublicationGetTTL(pub) < 0) {
       trigger = listener->discovered_nodes_.erase(uuid);
     } else {
       Node old_node = listener->discovered_nodes_[uuid];
@@ -301,12 +297,11 @@ private:
     if (pos != std::string::npos) {
       pos = pos + strlen(prefix);
       size_t end_pos = topic_str.find("&types=");
-      // See _advertise() for explanation of "/" prefix below
       if (end_pos != std::string::npos) {
-        topic.topic = std::string("/") + topic_str.substr(pos, end_pos - pos);
+        topic.topic = topic_str.substr(pos, end_pos - pos);
         pos = end_pos + strlen("&types=");
       } else {
-        topic.topic = std::string("/") + topic_str.substr(pos);
+        topic.topic = topic_str.substr(pos);
       }
       while (pos != std::string::npos) {
         end_pos = topic_str.find(",", pos);

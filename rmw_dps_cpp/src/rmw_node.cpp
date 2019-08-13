@@ -77,6 +77,7 @@ create_node(
   CustomNodeInfo * node_impl = nullptr;
   rmw_node_t * node_handle = nullptr;
   DPS_UUID uuid;
+  rmw_dps_cpp::cbor::TxStream ser;
   DPS_Status ret;
 
   graph_guard_condition = rmw_create_guard_condition(context);
@@ -126,60 +127,38 @@ create_node(
     RMW_SET_ERROR_MSG("failed to allocate DPS_Node");
     goto fail;
   }
-  ret = DPS_StartNode(node_impl->node_, DPS_MCAST_SUB_ENABLE_RECV | DPS_MCAST_SUB_ENABLE_SEND, 0);
+  ret = DPS_StartNode(node_impl->node_, DPS_MCAST_PUB_ENABLE_RECV, 0);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to start DPS_Node");
     goto fail;
   }
 
-  // discover
-  {
-    std::string dps_topic = _get_dps_topic_name(domain_id, "/$ROS/#");
-    const char * topic = dps_topic.c_str();
-    node_impl->discover_ = DPS_CreateSubscription(node_impl->node_, &topic, 1);
-    if (!node_impl->discover_) {
-      RMW_SET_ERROR_MSG("failed to create discover subscription");
-      goto fail;
-    }
-    node_impl->listener_ = new NodeListener(node_handle);
-    ret = DPS_SetSubscriptionData(node_impl->discover_, node_impl->listener_);
-    if (ret != DPS_OK) {
-      RMW_SET_ERROR_MSG("failed to set discover subscription data");
-      goto fail;
-    }
-    ret = DPS_SubscribeExpired(node_impl->discover_, DPS_TRUE);
-    if (ret != DPS_OK) {
-      RMW_SET_ERROR_MSG("failed to enable expired subscription");
-      goto fail;
-    }
-    ret = DPS_Subscribe(node_impl->discover_, NodeListener::onPublication);
-    if (ret != DPS_OK) {
-      RMW_SET_ERROR_MSG("failed to discover");
-      goto fail;
-    }
+  node_impl->discovery_svc_ = DPS_CreateDiscoveryService(node_impl->node_, "ROS");
+  if (!node_impl->discovery_svc_) {
+    RMW_SET_ERROR_MSG("failed to allocate discovery service");
+    goto fail;
   }
-
-  if (!_advertise(node_handle)) {
-    RMW_SET_ERROR_MSG("failed to advertise");
+  node_impl->listener_ = new NodeListener(node_handle);
+  ret = DPS_SetDiscoveryServiceData(node_impl->discovery_svc_, node_impl->listener_);
+  if (ret != DPS_OK) {
+    RMW_SET_ERROR_MSG("failed to set discovery service data");
+    goto fail;
+  }
+  node_impl->discovery_payload_.push_back(dps_uuid_prefix + node_impl->uuid_);
+  node_impl->discovery_payload_.push_back(dps_namespace_prefix + std::string(namespace_));
+  node_impl->discovery_payload_.push_back(dps_name_prefix + std::string(name));
+  ser << node_impl->discovery_payload_;
+  ret = DPS_DiscoveryPublish(node_impl->discovery_svc_, ser.data(), ser.size(),
+      NodeListener::onDiscovery);
+  if (ret != DPS_OK) {
+    RMW_SET_ERROR_MSG("failed to publish to discovery");
     goto fail;
   }
 
   return node_handle;
 fail:
-  if (RMW_RET_OK != _destroy_advertisement(node_handle)) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rmw_dps_cpp",
-      "failed to destroy advertisement during error handling");
-  }
-  if (node_impl->discover_) {
-    ret = DPS_DestroySubscription(node_impl->discover_, [](DPS_Subscription * sub) {
-          delete reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
-        });
-    if (ret != DPS_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to destroy discover subscription during error handling");
-    }
+  if (node_impl->discovery_svc_) {
+    DPS_DestroyDiscoveryService(node_impl->discovery_svc_);
   }
   if (node_impl->node_) {
     if (RMW_RET_OK != destroy_node(node_impl->node_)) {
@@ -266,18 +245,8 @@ rmw_destroy_node(rmw_node_t * node)
     return RMW_RET_ERROR;
   }
 
-  if (RMW_RET_OK != _destroy_advertisement(node)) {
-    RMW_SET_ERROR_MSG("failed to destroy advertisement");
-    result_ret = RMW_RET_ERROR;
-  }
-  if (impl->discover_) {
-    if (DPS_OK != DPS_DestroySubscription(impl->discover_, [](DPS_Subscription * sub) {
-        delete reinterpret_cast<NodeListener *>(DPS_GetSubscriptionData(sub));
-      }))
-    {
-      RMW_SET_ERROR_MSG("failed to destroy discover subscription");
-      result_ret = RMW_RET_ERROR;
-    }
+  if (impl->discovery_svc_) {
+    DPS_DestroyDiscoveryService(impl->discovery_svc_);
   }
   if (impl->node_) {
     if (RMW_RET_OK != destroy_node(impl->node_)) {

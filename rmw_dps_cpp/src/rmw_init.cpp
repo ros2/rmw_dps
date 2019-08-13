@@ -98,7 +98,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   context->implementation_identifier = intel_dps_identifier;
   context->impl = nullptr;
 
-  rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_ERROR);
+  rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_DEBUG);
   (void)ret;
   DPS_Debug = 0;
   DPS_InitUUID();
