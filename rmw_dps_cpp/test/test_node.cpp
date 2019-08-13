@@ -132,3 +132,49 @@ TEST_F(test_node, get_service_names_and_types) {
   ret = rmw_destroy_node(node);
   ASSERT_EQ(RMW_RET_OK, ret);
 }
+
+TEST_F(test_node, service_server_is_available) {
+  rmw_ret_t ret;
+  rmw_node_t * node;
+  const rosidl_service_type_support_t * type_support;
+  rmw_client_t * client;
+  rmw_service_t * service;
+  bool is_available;
+  rmw_wait_set_t * wait_set = rmw_create_wait_set(&context, 1);
+  rmw_time_t timeout = {1, 0};
+
+  node = rmw_create_node(&context, "test_node", "/", 0, &security_options);
+  ASSERT_TRUE(nullptr != node);
+
+  type_support = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Empty);
+  ASSERT_TRUE(nullptr != type_support);
+
+  client = rmw_create_client(node, type_support, "/test_service",
+      &rmw_qos_profile_default);
+  ASSERT_TRUE(nullptr != client);
+
+  // discover that a matching server is available
+  service = rmw_create_service(node, type_support, "/test_service",
+      &rmw_qos_profile_default);
+  ASSERT_TRUE(nullptr != service);
+  // wait for advertisements to settle down
+  ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
+  ASSERT_EQ(RMW_RET_TIMEOUT, ret);
+  ret = rmw_service_server_is_available(node, client, &is_available);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ASSERT_TRUE(is_available);
+
+  // discover that a matching server is not available
+  ret = rmw_destroy_service(node, service);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
+  ASSERT_EQ(RMW_RET_TIMEOUT, ret);
+  ret = rmw_service_server_is_available(node, client, &is_available);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ASSERT_FALSE(is_available);
+
+  ret = rmw_destroy_client(node, client);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_destroy_node(node);
+  ASSERT_EQ(RMW_RET_OK, ret);
+}

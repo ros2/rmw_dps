@@ -45,19 +45,26 @@ TEST_F(test_subscription, count_matched_publishers) {
       &rmw_qos_profile_default, false);
   ASSERT_TRUE(nullptr != subscription);
 
+  // discover that a matching publisher has been created
   publisher = rmw_create_publisher(node, type_support, "/count_matched_subscriptions",
       &rmw_qos_profile_default);
   ASSERT_TRUE(nullptr != publisher);
   // wait for advertisements to settle down
   ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
   ASSERT_EQ(RMW_RET_TIMEOUT, ret);
-
   ret = rmw_subscription_count_matched_publishers(subscription, &count);
   ASSERT_EQ(RMW_RET_OK, ret);
   ASSERT_EQ(1u, count);
 
-  ret = rmw_destroy_subscription(node, subscription);
-  ASSERT_EQ(RMW_RET_OK, ret);
+  // discover that a matching publisher has been destroyed
   ret = rmw_destroy_publisher(node, publisher);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
+  ASSERT_EQ(RMW_RET_TIMEOUT, ret);
+  ret = rmw_subscription_count_matched_publishers(subscription, &count);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ASSERT_EQ(0u, count);
+
+  ret = rmw_destroy_subscription(node, subscription);
   ASSERT_EQ(RMW_RET_OK, ret);
 }

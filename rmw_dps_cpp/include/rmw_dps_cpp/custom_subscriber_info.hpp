@@ -17,6 +17,10 @@
 
 #include <dps/dps.h>
 
+#include <string>
+
+#include "rmw/rmw.h"
+
 class Listener;
 
 typedef struct CustomSubscriberInfo
@@ -26,6 +30,7 @@ typedef struct CustomSubscriberInfo
   Listener * listener_;
   void * type_support_;
   const char * typesupport_identifier_;
+  std::string discovery_name_;
 } CustomSubscriberInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_
