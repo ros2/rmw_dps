@@ -76,7 +76,6 @@ create_node(
   rmw_guard_condition_t * graph_guard_condition = nullptr;
   CustomNodeInfo * node_impl = nullptr;
   rmw_node_t * node_handle = nullptr;
-  DPS_UUID uuid;
   rmw_dps_cpp::cbor::TxStream ser;
   DPS_Status ret;
 
@@ -92,8 +91,6 @@ create_node(
     RMW_SET_ERROR_MSG("failed to allocate node impl struct");
     goto fail;
   }
-  DPS_GenerateUUID(&uuid);
-  node_impl->uuid_ = DPS_UUIDToString(&uuid);
   node_impl->domain_id_ = domain_id;
   node_impl->graph_guard_condition_ = graph_guard_condition;
 
@@ -144,7 +141,6 @@ create_node(
     RMW_SET_ERROR_MSG("failed to set discovery service data");
     goto fail;
   }
-  node_impl->discovery_payload_.push_back(dps_uuid_prefix + node_impl->uuid_);
   node_impl->discovery_payload_.push_back(dps_namespace_prefix + std::string(namespace_));
   node_impl->discovery_payload_.push_back(dps_name_prefix + std::string(name));
   ser << node_impl->discovery_payload_;

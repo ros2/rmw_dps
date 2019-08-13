@@ -36,7 +36,6 @@ class NodeListener;
 typedef struct CustomNodeInfo
 {
   DPS_Node * node_;
-  std::string uuid_;
   rmw_guard_condition_t * graph_guard_condition_;
   size_t domain_id_;
   std::vector<std::string> discovery_payload_;
@@ -86,68 +85,60 @@ public:
   {}
 
   static void
-  onDiscovery(DPS_DiscoveryService * service, uint8_t * payload, size_t len)
+  onDiscovery(
+    DPS_DiscoveryService * service, const DPS_Publication * pub, uint8_t * payload,
+    size_t len)
   {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "%s(service=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)service, payload, len);
+      "%s(service=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)service, (void *)pub,
+      payload, len);
 
     NodeListener * listener =
       reinterpret_cast<NodeListener *>(DPS_GetDiscoveryServiceData(service));
     auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
     std::lock_guard<std::mutex> lock(listener->mutex_);
-    std::string uuid;
-    Node node;
-    rmw_dps_cpp::cbor::RxStream deser(payload, len);
-    std::vector<std::string> topics;
-    deser >> topics;
-    for (size_t i = 0; i < topics.size(); ++i) {
-      std::string topic = topics[i];
-      size_t pos;
-      pos = topic.find(dps_uuid_prefix);
-      if (pos != std::string::npos) {
-        uuid = topic.substr(pos + strlen(dps_uuid_prefix));
-        continue;
-      }
-      pos = topic.find(dps_namespace_prefix);
-      if (pos != std::string::npos) {
-        node.namespace_ = topic.substr(pos + strlen(dps_namespace_prefix));
-        continue;
-      }
-      pos = topic.find(dps_name_prefix);
-      if (pos != std::string::npos) {
-        node.name = topic.substr(pos + strlen(dps_name_prefix));
-        continue;
-      }
-      Topic subscriber;
-      if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
-        node.subscribers.push_back(subscriber);
-        continue;
-      }
-      Topic publisher;
-      if (process_topic_info(topic, dps_publisher_prefix, publisher)) {
-        node.publishers.push_back(publisher);
-        continue;
-      }
-      Topic service;
-      if (process_topic_info(topic, dps_service_prefix, service)) {
-        node.services.push_back(service);
-        continue;
-      }
-    }
-    if (uuid.empty()) {
-      // ignore invalid advertisement
-      return;
-    }
-
-    // TODO(malsbat) when to erase discovered_nodes_ now?
     bool trigger;
-    if (false) {  // DPS_PublicationGetTTL(pub) < 0) {
-      trigger = listener->discovered_nodes_.erase(uuid);
-    } else {
+    std::string uuid = DPS_UUIDToString(DPS_PublicationGetUUID(pub));
+    if (payload && len) {
+      Node node;
+      rmw_dps_cpp::cbor::RxStream deser(payload, len);
+      std::vector<std::string> topics;
+      deser >> topics;
+      for (size_t i = 0; i < topics.size(); ++i) {
+        std::string topic = topics[i];
+        size_t pos;
+        pos = topic.find(dps_namespace_prefix);
+        if (pos != std::string::npos) {
+          node.namespace_ = topic.substr(pos + strlen(dps_namespace_prefix));
+          continue;
+        }
+        pos = topic.find(dps_name_prefix);
+        if (pos != std::string::npos) {
+          node.name = topic.substr(pos + strlen(dps_name_prefix));
+          continue;
+        }
+        Topic subscriber;
+        if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
+          node.subscribers.push_back(subscriber);
+          continue;
+        }
+        Topic publisher;
+        if (process_topic_info(topic, dps_publisher_prefix, publisher)) {
+          node.publishers.push_back(publisher);
+          continue;
+        }
+        Topic service;
+        if (process_topic_info(topic, dps_service_prefix, service)) {
+          node.services.push_back(service);
+          continue;
+        }
+      }
       Node old_node = listener->discovered_nodes_[uuid];
       listener->discovered_nodes_[uuid] = node;
       trigger = !(old_node == node);
+    } else {
+      trigger = listener->discovered_nodes_.erase(uuid);
     }
     if (trigger) {
       if (RMW_RET_OK != rmw_trigger_guard_condition(impl->graph_guard_condition_)) {

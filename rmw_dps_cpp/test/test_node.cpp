@@ -62,6 +62,7 @@ TEST_F(test_node, discover_existing_node) {
 
   node = rmw_create_node(&context, "discovering_node", "/", 0, &security_options);
   ASSERT_TRUE(nullptr != node);
+
   void * conditions[] = {rmw_node_get_graph_guard_condition(node)->data};
   rmw_guard_conditions_t guard_conditions = {1, conditions};
   while (true) {
@@ -84,11 +85,32 @@ TEST_F(test_node, discover_existing_node) {
     }
   }
 
+  // detect destruction of node
+  ret = rmw_destroy_node(existing_node);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rmw_wait(nullptr, nullptr, nullptr, nullptr, nullptr, wait_set, &timeout);
+  ASSERT_EQ(RMW_RET_TIMEOUT, ret);
+  rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
+  ret = rmw_get_node_names(node, &node_names, &node_namespaces);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  auto end = node_names.data + node_names.size;
+  auto it = std::find_if(node_names.data, end, [](char * data) {
+        return !strcmp(data, "existing_node");
+      });
+  for (size_t i = 0; i < node_names.size; ++i) {
+    printf("%s ", node_names.data[i]);
+  }
+  printf("\n");
+  ret = rcutils_string_array_fini(&node_namespaces);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rcutils_string_array_fini(&node_names);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ASSERT_EQ(it, end);
+
   ret = rmw_destroy_wait_set(wait_set);
   ASSERT_EQ(RMW_RET_OK, ret);
   ret = rmw_destroy_node(node);
-  ASSERT_EQ(RMW_RET_OK, ret);
-  ret = rmw_destroy_node(existing_node);
   ASSERT_EQ(RMW_RET_OK, ret);
 }
 
