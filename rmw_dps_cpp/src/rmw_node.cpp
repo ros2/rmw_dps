@@ -29,6 +29,56 @@
 #include "rmw_dps_cpp/identifier.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
 
+rmw_ret_t
+_publish_discovery_payload(CustomNodeInfo * impl)
+{
+  rmw_dps_cpp::cbor::TxStream ser;
+  ser << impl->discovery_payload_;
+  if (ser.status() == DPS_ERR_OVERFLOW) {
+    ser = rmw_dps_cpp::cbor::TxStream(ser.size_needed());
+    ser << impl->discovery_payload_;
+  }
+  DPS_Status status = DPS_DiscoveryPublish(impl->discovery_svc_, ser.data(), ser.size(),
+      NodeListener::onDiscovery);
+  if (status == DPS_OK) {
+    return RMW_RET_OK;
+  } else {
+    RMW_SET_ERROR_MSG("failed to publish to discovery");
+    return RMW_RET_ERROR;
+  }
+}
+
+rmw_ret_t
+_add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & topics)
+{
+  std::lock_guard<std::mutex> lock(impl->mutex_);
+  impl->discovery_payload_.insert(impl->discovery_payload_.end(),
+    topics.begin(), topics.end());
+  return _publish_discovery_payload(impl);
+}
+
+rmw_ret_t
+_add_discovery_topic(CustomNodeInfo * impl, const std::string & topic)
+{
+  std::lock_guard<std::mutex> lock(impl->mutex_);
+  impl->discovery_payload_.push_back(topic);
+  return _publish_discovery_payload(impl);
+}
+
+rmw_ret_t
+_remove_discovery_topic(CustomNodeInfo * impl, const std::string & topic)
+{
+  std::lock_guard<std::mutex> lock(impl->mutex_);
+  auto it = std::find_if(impl->discovery_payload_.begin(), impl->discovery_payload_.end(),
+      [&](const std::string & str) {return str == topic;});
+  if (it != impl->discovery_payload_.end()) {
+    impl->discovery_payload_.erase(it);
+    return _publish_discovery_payload(impl);
+  } else {
+    return RMW_RET_OK;
+  }
+}
+
 extern "C"
 {
 void
@@ -76,7 +126,7 @@ create_node(
   rmw_guard_condition_t * graph_guard_condition = nullptr;
   CustomNodeInfo * node_impl = nullptr;
   rmw_node_t * node_handle = nullptr;
-  rmw_dps_cpp::cbor::TxStream ser;
+  std::vector<std::string> discovery_topics;
   DPS_Status ret;
 
   graph_guard_condition = rmw_create_guard_condition(context);
@@ -141,13 +191,10 @@ create_node(
     RMW_SET_ERROR_MSG("failed to set discovery service data");
     goto fail;
   }
-  node_impl->discovery_payload_.push_back(dps_namespace_prefix + std::string(namespace_));
-  node_impl->discovery_payload_.push_back(dps_name_prefix + std::string(name));
-  ser << node_impl->discovery_payload_;
-  ret = DPS_DiscoveryPublish(node_impl->discovery_svc_, ser.data(), ser.size(),
-      NodeListener::onDiscovery);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to publish to discovery");
+
+  discovery_topics.push_back(dps_namespace_prefix + std::string(namespace_));
+  discovery_topics.push_back(dps_name_prefix + std::string(name));
+  if (_add_discovery_topics(node_impl, discovery_topics) != RMW_RET_OK) {
     goto fail;
   }
 

@@ -44,6 +44,10 @@ typedef struct CustomNodeInfo
   std::mutex mutex_;
 } CustomNodeInfo;
 
+rmw_ret_t _add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & topics);
+rmw_ret_t _add_discovery_topic(CustomNodeInfo * impl, const std::string & topic);
+rmw_ret_t _remove_discovery_topic(CustomNodeInfo * impl, const std::string & topic);
+
 inline bool
 operator<(const DPS_UUID & lhs, const DPS_UUID & rhs)
 {

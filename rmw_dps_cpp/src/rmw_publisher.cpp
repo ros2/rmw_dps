@@ -203,12 +203,7 @@ rmw_create_publisher(
 
   info->discovery_name_ = dps_publisher_prefix + std::string(topic_name) +
     "&types=" + type_name;
-  impl->discovery_payload_.push_back(info->discovery_name_);
-  ser << impl->discovery_payload_;
-  ret = DPS_DiscoveryPublish(impl->discovery_svc_, ser.data(), ser.size(),
-      NodeListener::onDiscovery);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to publish to discovery");
+  if (_add_discovery_topic(impl, info->discovery_name_) != RMW_RET_OK) {
     goto fail;
   }
 
@@ -286,18 +281,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
   rmw_dps_cpp::cbor::TxStream ser;
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
   if (info) {
-    auto it = std::find_if(impl->discovery_payload_.begin(), impl->discovery_payload_.end(),
-        [&](const std::string & str) {return str == info->discovery_name_;});
-    if (it != impl->discovery_payload_.end()) {
-      impl->discovery_payload_.erase(it);
-      ser << impl->discovery_payload_;
-      DPS_Status ret = DPS_DiscoveryPublish(impl->discovery_svc_, ser.data(), ser.size(),
-          NodeListener::onDiscovery);
-      if (ret != DPS_OK) {
-        RMW_SET_ERROR_MSG("failed to publish to discovery");
-        return RMW_RET_ERROR;
-      }
-    }
+    _remove_discovery_topic(impl, info->discovery_name_);
     if (info->publication_) {
       DPS_DestroyPublication(info->publication_, nullptr);
     }
