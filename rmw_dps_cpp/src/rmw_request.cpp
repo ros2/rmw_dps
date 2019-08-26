@@ -59,10 +59,12 @@ rmw_send_request(
   if (_serialize_ros_message(ros_request, ser, info->request_type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status ret = publish(info->request_publication_, ser.data(), ser.size(), info->event_);
-    if (ret == DPS_OK) {
+    DPS_Status status = publish(info->request_publication_, ser.data(), ser.size(), info->event_);
+    if (status == DPS_OK) {
       *sequence_id = DPS_PublicationGetSequenceNum(info->request_publication_);
       returnedValue = RMW_RET_OK;
+    } else {
+      RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("cannot publish data - %s", DPS_ErrTxt(status));
     }
   } else {
     RMW_SET_ERROR_MSG("cannot serialize data");

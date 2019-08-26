@@ -89,7 +89,7 @@ rmw_create_client(
   std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service_name);
   const char * topic = dps_topic.c_str();
   rmw_client_t * rmw_client = nullptr;
-  DPS_Status ret;
+  DPS_Status status;
 
   info = new CustomClientInfo();
   info->node_ = impl->node_;
@@ -131,15 +131,17 @@ rmw_create_client(
     goto fail;
   }
   info->response_listener_ = new Listener;
-  ret = DPS_SetPublicationData(info->request_publication_, info->response_listener_);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to set subscription data");
+  status = DPS_SetPublicationData(info->request_publication_, info->response_listener_);
+  if (status != DPS_OK) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to set subscription data - %s",
+      DPS_ErrTxt(status));
     goto fail;
   }
-  ret = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE, nullptr,
+  status = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE, nullptr,
       Listener::onAcknowledgement);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to initialize publication");
+  if (status != DPS_OK) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to initialize publication - %s",
+      DPS_ErrTxt(status));
     goto fail;
   }
 

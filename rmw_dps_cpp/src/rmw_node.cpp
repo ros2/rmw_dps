@@ -43,7 +43,7 @@ _publish_discovery_payload(CustomNodeInfo * impl)
   if (status == DPS_OK) {
     return RMW_RET_OK;
   } else {
-    RMW_SET_ERROR_MSG("failed to publish to discovery");
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to publish to discovery - %s", DPS_ErrTxt(status));
     return RMW_RET_ERROR;
   }
 }
