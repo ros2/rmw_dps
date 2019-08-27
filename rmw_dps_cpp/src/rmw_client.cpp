@@ -160,6 +160,12 @@ rmw_create_client(
   }
   memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
 
+  info->discovery_name_ = dps_client_prefix + std::string(service_name) +
+    "&types=" + request_type_name + "," + response_type_name;
+  if (_add_discovery_topic(impl, info->discovery_name_) != RMW_RET_OK) {
+    goto fail;
+  }
+
   return rmw_client;
 
 fail:
@@ -213,6 +219,11 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     RMW_SET_ERROR_MSG("client handle not from this implementation");
     return RMW_RET_ERROR;
   }
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  if (!impl) {
+    RMW_SET_ERROR_MSG("node impl is null");
+    return RMW_RET_ERROR;
+  }
 
   if (!client) {
     RMW_SET_ERROR_MSG("client handle is null");
@@ -226,6 +237,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
 
   auto info = static_cast<CustomClientInfo *>(client->data);
   if (info) {
+    _remove_discovery_topic(impl, info->discovery_name_);
     if (info->request_type_support_) {
       _unregister_type(info->node_, info->request_type_support_,
         info->typesupport_identifier_);

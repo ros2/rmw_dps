@@ -74,13 +74,15 @@ public:
     std::vector<Topic> subscribers;
     std::vector<Topic> publishers;
     std::vector<Topic> services;
+    std::vector<Topic> clients;
     bool operator==(const Node & that) const
     {
       return this->name == that.name &&
              this->namespace_ == that.namespace_ &&
              this->subscribers == that.subscribers &&
              this->publishers == that.publishers &&
-             this->services == that.services;
+             this->services == that.services &&
+             this->clients == that.clients;
     }
   };
 
@@ -135,6 +137,11 @@ public:
         Topic service;
         if (process_topic_info(topic, dps_service_prefix, service)) {
           node.services.push_back(service);
+          continue;
+        }
+        Topic client;
+        if (process_topic_info(topic, dps_client_prefix, client)) {
+          node.clients.push_back(client);
           continue;
         }
       }
@@ -253,6 +260,23 @@ public:
   }
 
   std::map<std::string, std::set<std::string>>
+  get_client_names_and_types_by_node(const char * name, const char * namespace_)
+  {
+    std::map<std::string, std::set<std::string>> names_and_types;
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto uuid_node_pair = std::find_if(discovered_nodes_.begin(), discovered_nodes_.end(),
+        [name, namespace_](const std::pair<std::string, Node> & pair) {
+          return pair.second.name == name && pair.second.namespace_ == namespace_;
+        });
+    if (uuid_node_pair != discovered_nodes_.end()) {
+      for (auto it : uuid_node_pair->second.clients) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+    }
+    return names_and_types;
+  }
+
+  std::map<std::string, std::set<std::string>>
   get_topic_names_and_types()
   {
     std::map<std::string, std::set<std::string>> names_and_types;
@@ -265,6 +289,9 @@ public:
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());
       }
       for (auto it : uuid_node_pair.second.services) {
+        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
+      }
+      for (auto it : uuid_node_pair.second.clients) {
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());
       }
     }

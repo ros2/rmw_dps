@@ -31,6 +31,7 @@ typedef struct CustomClientInfo
   Listener * response_listener_;
   DPS_Node * node_;
   const char * typesupport_identifier_;
+  std::string discovery_name_;
 } CustomClientInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_CLIENT_INFO_HPP_

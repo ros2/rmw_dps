@@ -25,6 +25,7 @@ extern const char * const dps_name_prefix;
 extern const char * const dps_subscriber_prefix;
 extern const char * const dps_publisher_prefix;
 extern const char * const dps_service_prefix;
+extern const char * const dps_client_prefix;
 }  // extern "C"
 
 #endif  // RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_

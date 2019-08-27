@@ -255,6 +255,31 @@ rmw_get_service_names_and_types_by_node(
 }
 
 rmw_ret_t
+rmw_get_client_names_and_types_by_node(
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rmw_names_and_types_t * service_names_and_types)
+{
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s(node=%p,allocator=%p,node_name=%s,node_namespace=%s,service_names_and_types=%p)",
+    __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace,
+    reinterpret_cast<void *>(service_names_and_types));
+
+  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, false,
+      service_names_and_types);
+  if (valid_input != RMW_RET_OK) {
+    return valid_input;
+  }
+
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  auto topics = impl->listener_->get_client_names_and_types_by_node(node_name, node_namespace);
+  return _copy_data_to_results(topics, allocator, service_names_and_types);
+}
+
+rmw_ret_t
 rmw_get_topic_names_and_types(
   const rmw_node_t * node,
   rcutils_allocator_t * allocator,

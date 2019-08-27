@@ -22,4 +22,5 @@ const char * const dps_name_prefix = "name=";
 const char * const dps_subscriber_prefix = "subscriber&topic=";
 const char * const dps_publisher_prefix = "publisher&topic=";
 const char * const dps_service_prefix = "service&topic=";
+const char * const dps_client_prefix = "client&topic=";
 }  // extern "C"
