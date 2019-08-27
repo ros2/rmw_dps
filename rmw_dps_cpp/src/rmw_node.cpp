@@ -82,6 +82,14 @@ _remove_discovery_topic(CustomNodeInfo * impl, const std::string & topic)
 extern "C"
 {
 void
+discovery_svc_destroyed(DPS_DiscoveryService * service, void * data)
+{
+  (void)service;
+  DPS_Event * event = reinterpret_cast<DPS_Event *>(data);
+  DPS_SignalEvent(event, DPS_OK);
+}
+
+void
 node_destroyed(DPS_Node * node, void * data)
 {
   (void)node;
@@ -90,18 +98,51 @@ node_destroyed(DPS_Node * node, void * data)
 }
 
 rmw_ret_t
-destroy_node(DPS_Node * node)
+destroy_node(rmw_node_t * node)
 {
-  DPS_Event * event = DPS_CreateEvent();
-  if (!event) {
-    RMW_SET_ERROR_MSG("failed to allocate DPS_Event");
-    return RMW_RET_ERROR;
+  if (node) {
+    auto impl = static_cast<CustomNodeInfo *>(node->data);
+    if (impl) {
+      DPS_Event * event = DPS_CreateEvent();
+      if (!event) {
+        RMW_SET_ERROR_MSG("failed to allocate DPS_Event");
+        return RMW_RET_ERROR;
+      }
+      if (impl->discovery_svc_) {
+        DPS_Status ret = DPS_DestroyDiscoveryService(impl->discovery_svc_,
+            discovery_svc_destroyed, event);
+        if (ret == DPS_OK) {
+          DPS_WaitForEvent(event);
+        }
+      }
+      if (impl->node_) {
+        DPS_Status ret = DPS_DestroyNode(impl->node_, node_destroyed, event);
+        if (ret == DPS_OK) {
+          DPS_WaitForEvent(event);
+        }
+      }
+      DPS_DestroyEvent(event);
+      if (impl->listener_) {
+        delete impl->listener_;
+      }
+      if (impl->graph_guard_condition_) {
+        rmw_ret_t ret = rmw_destroy_guard_condition(impl->graph_guard_condition_);
+        if (ret != RMW_RET_OK) {
+          RCUTILS_LOG_ERROR_NAMED(
+            "rmw_dps_cpp",
+            "failed to destroy guard condition");
+        }
+      }
+      delete impl;
+    }
+    if (node->namespace_) {
+      rmw_free(const_cast<char *>(node->namespace_));
+    }
+    if (node->name) {
+      rmw_free(const_cast<char *>(node->name));
+    }
+    rmw_node_free(node);
   }
-  DPS_Status ret = DPS_DestroyNode(node, node_destroyed, event);
-  if (ret == DPS_OK) {
-    DPS_WaitForEvent(event);
-  }
-  DPS_DestroyEvent(event);
   return RMW_RET_OK;
 }
 
@@ -123,26 +164,10 @@ create_node(
   }
 
   // Declare everything before beginning to create things.
-  rmw_guard_condition_t * graph_guard_condition = nullptr;
   CustomNodeInfo * node_impl = nullptr;
   rmw_node_t * node_handle = nullptr;
   std::vector<std::string> discovery_topics;
-  DPS_Status ret;
-
-  graph_guard_condition = rmw_create_guard_condition(context);
-  if (!graph_guard_condition) {
-    // error already set
-    goto fail;
-  }
-
-  try {
-    node_impl = new CustomNodeInfo();
-  } catch (std::bad_alloc &) {
-    RMW_SET_ERROR_MSG("failed to allocate node impl struct");
-    goto fail;
-  }
-  node_impl->domain_id_ = domain_id;
-  node_impl->graph_guard_condition_ = graph_guard_condition;
+  DPS_Status status;
 
   node_handle = rmw_node_allocate();
   if (!node_handle) {
@@ -150,17 +175,14 @@ create_node(
     goto fail;
   }
   node_handle->implementation_identifier = intel_dps_identifier;
-  node_handle->data = node_impl;
 
   node_handle->name =
     static_cast<const char *>(rmw_allocate(sizeof(char) * strlen(name) + 1));
   if (!node_handle->name) {
     RMW_SET_ERROR_MSG("failed to allocate memory");
-    node_handle->namespace_ = nullptr;  // to avoid free on uninitialized memory
     goto fail;
   }
   memcpy(const_cast<char *>(node_handle->name), name, strlen(name) + 1);
-
   node_handle->namespace_ =
     static_cast<const char *>(rmw_allocate(sizeof(char) * strlen(namespace_) + 1));
   if (!node_handle->namespace_) {
@@ -169,13 +191,29 @@ create_node(
   }
   memcpy(const_cast<char *>(node_handle->namespace_), namespace_, strlen(namespace_) + 1);
 
+  try {
+    node_impl = new CustomNodeInfo();
+  } catch (std::bad_alloc &) {
+    RMW_SET_ERROR_MSG("failed to allocate node impl struct");
+    goto fail;
+  }
+  node_handle->data = node_impl;
+  node_impl->domain_id_ = domain_id;
+
+  node_impl->graph_guard_condition_ = rmw_create_guard_condition(context);
+  if (!node_impl->graph_guard_condition_) {
+    // error already set
+    goto fail;
+  }
+
+  node_impl->listener_ = new NodeListener(node_handle);
   node_impl->node_ = DPS_CreateNode("/=,&", nullptr, nullptr);
   if (!node_impl->node_) {
     RMW_SET_ERROR_MSG("failed to allocate DPS_Node");
     goto fail;
   }
-  ret = DPS_StartNode(node_impl->node_, DPS_MCAST_PUB_ENABLE_RECV, 0);
-  if (ret != DPS_OK) {
+  status = DPS_StartNode(node_impl->node_, DPS_MCAST_PUB_ENABLE_RECV, 0);
+  if (status != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to start DPS_Node");
     goto fail;
   }
@@ -185,9 +223,8 @@ create_node(
     RMW_SET_ERROR_MSG("failed to allocate discovery service");
     goto fail;
   }
-  node_impl->listener_ = new NodeListener(node_handle);
-  ret = DPS_SetDiscoveryServiceData(node_impl->discovery_svc_, node_impl->listener_);
-  if (ret != DPS_OK) {
+  status = DPS_SetDiscoveryServiceData(node_impl->discovery_svc_, node_impl->listener_);
+  if (status != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to set discovery service data");
     goto fail;
   }
@@ -200,31 +237,11 @@ create_node(
 
   return node_handle;
 fail:
-  if (node_impl->discovery_svc_) {
-    DPS_DestroyDiscoveryService(node_impl->discovery_svc_);
-  }
-  if (node_impl->node_) {
-    if (RMW_RET_OK != destroy_node(node_impl->node_)) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to destroy node during error handling");
-    }
-  }
-  if (node_handle) {
-    rmw_free(const_cast<char *>(node_handle->namespace_));
-    node_handle->namespace_ = nullptr;
-    rmw_free(const_cast<char *>(node_handle->name));
-    node_handle->name = nullptr;
-  }
-  rmw_node_free(node_handle);
-  delete node_impl;
-  if (graph_guard_condition) {
-    rmw_ret_t ret = rmw_destroy_guard_condition(graph_guard_condition);
-    if (ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to destroy guard condition during error handling");
-    }
+  rmw_ret_t ret = destroy_node(node_handle);
+  if (ret != RMW_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rmw_dps_cpp",
+      "failed to destroy node during error handling");
   }
   return nullptr;
 }
@@ -271,7 +288,6 @@ rmw_destroy_node(rmw_node_t * node)
     "rmw_dps_cpp",
     "%s(node=%p)", __FUNCTION__, (void *)node);
 
-  rmw_ret_t result_ret = RMW_RET_OK;
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
     return RMW_RET_ERROR;
@@ -282,33 +298,7 @@ rmw_destroy_node(rmw_node_t * node)
     return RMW_RET_ERROR;
   }
 
-  auto impl = static_cast<CustomNodeInfo *>(node->data);
-  if (!impl) {
-    RMW_SET_ERROR_MSG("node impl is null");
-    return RMW_RET_ERROR;
-  }
-
-  if (impl->discovery_svc_) {
-    DPS_DestroyDiscoveryService(impl->discovery_svc_);
-  }
-  if (impl->node_) {
-    if (RMW_RET_OK != destroy_node(impl->node_)) {
-      RMW_SET_ERROR_MSG("failed to destroy node");
-      result_ret = RMW_RET_ERROR;
-    }
-  }
-  rmw_free(const_cast<char *>(node->name));
-  node->name = nullptr;
-  rmw_free(const_cast<char *>(node->namespace_));
-  node->namespace_ = nullptr;
-  rmw_node_free(node);
-  if (RMW_RET_OK != rmw_destroy_guard_condition(impl->graph_guard_condition_)) {
-    RMW_SET_ERROR_MSG("failed to destroy graph guard condition");
-    result_ret = RMW_RET_ERROR;
-  }
-  delete impl;
-
-  return result_ret;
+  return destroy_node(node);
 }
 
 rmw_ret_t
