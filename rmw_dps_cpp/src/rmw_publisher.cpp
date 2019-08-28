@@ -170,11 +170,6 @@ rmw_create_publisher(
     _register_type(impl->node_, info->type_support_, info->typesupport_identifier_);
   }
 
-  info->event_ = DPS_CreateEvent();
-  if (!info->event_) {
-    RMW_SET_ERROR_MSG("failed to create event");
-    goto fail;
-  }
   info->publication_ = DPS_CreatePublication(impl->node_);
   if (!info->publication_) {
     RMW_SET_ERROR_MSG("failed to create publication");
@@ -213,9 +208,6 @@ fail:
   _delete_typesupport(info->type_support_, info->typesupport_identifier_);
   if (info->publication_) {
     DPS_DestroyPublication(info->publication_, nullptr);
-  }
-  if (info->event_) {
-    DPS_DestroyEvent(info->event_);
   }
   delete info;
 
@@ -284,9 +276,6 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
     _remove_discovery_topic(impl, info->discovery_name_);
     if (info->publication_) {
       DPS_DestroyPublication(info->publication_, nullptr);
-    }
-    if (info->event_) {
-      DPS_DestroyEvent(info->event_);
     }
     if (info->type_support_) {
       _unregister_type(impl->node_, info->type_support_, info->typesupport_identifier_);

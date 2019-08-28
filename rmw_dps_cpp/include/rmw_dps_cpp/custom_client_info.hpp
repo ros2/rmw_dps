@@ -26,7 +26,6 @@ typedef struct CustomClientInfo
 {
   void * request_type_support_;
   void * response_type_support_;
-  DPS_Event * event_;
   DPS_Publication * request_publication_;
   Listener * response_listener_;
   DPS_Node * node_;

@@ -59,7 +59,7 @@ rmw_send_request(
   if (_serialize_ros_message(ros_request, ser, info->request_type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status status = publish(info->request_publication_, ser.data(), ser.size(), info->event_);
+    DPS_Status status = publish(info->request_publication_, ser.data(), ser.size());
     if (status == DPS_OK) {
       *sequence_id = DPS_PublicationGetSequenceNum(info->request_publication_);
       returnedValue = RMW_RET_OK;

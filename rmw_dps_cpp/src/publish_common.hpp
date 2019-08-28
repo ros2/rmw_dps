@@ -19,6 +19,6 @@
 #include <dps/event.h>
 
 DPS_Status
-publish(DPS_Publication * pub, const uint8_t * data, size_t size, DPS_Event * event);
+publish(DPS_Publication * pub, const uint8_t * data, size_t size);
 
 #endif  // PUBLISH_COMMON_HPP_

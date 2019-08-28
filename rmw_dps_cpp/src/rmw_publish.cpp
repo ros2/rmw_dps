@@ -57,7 +57,7 @@ rmw_publish(
   if (_serialize_ros_message(ros_message, ser, info->type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status status = publish(info->publication_, ser.data(), ser.size(), info->event_);
+    DPS_Status status = publish(info->publication_, ser.data(), ser.size());
     if (status == DPS_OK) {
       returnedValue = RMW_RET_OK;
     } else {
@@ -91,7 +91,7 @@ rmw_publish_serialized_message(
     info, "publisher info pointer is null", return RMW_RET_ERROR);
 
   DPS_Status status = publish(info->publication_, serialized_message->buffer,
-      serialized_message->buffer_length, info->event_);
+      serialized_message->buffer_length);
   if (status != DPS_OK) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("cannot publish data - %s", DPS_ErrTxt(status));
     return RMW_RET_ERROR;
