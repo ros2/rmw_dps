@@ -90,6 +90,14 @@ discovery_svc_destroyed(DPS_DiscoveryService * service, void * data)
 }
 
 void
+node_shutdown(DPS_Node * node, void * data)
+{
+  (void)node;
+  DPS_Event * event = reinterpret_cast<DPS_Event *>(data);
+  DPS_SignalEvent(event, DPS_OK);
+}
+
+void
 node_destroyed(DPS_Node * node, void * data)
 {
   (void)node;
@@ -116,7 +124,11 @@ destroy_node(rmw_node_t * node)
         }
       }
       if (impl->node_) {
-        DPS_Status ret = DPS_DestroyNode(impl->node_, node_destroyed, event);
+        DPS_Status ret = DPS_ShutdownNode(impl->node_, node_shutdown, event);
+        if (ret == DPS_OK) {
+          DPS_WaitForEvent(event);
+        }
+        ret = DPS_DestroyNode(impl->node_, node_destroyed, event);
         if (ret == DPS_OK) {
           DPS_WaitForEvent(event);
         }
