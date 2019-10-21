@@ -31,6 +31,8 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 
+#include "demangle.hpp"
+
 /**
  * Validate the input data of node_info_and_types functions.
  *
@@ -42,7 +44,6 @@ static rmw_ret_t
 _validate_input(
   const rmw_node_t * node,
   rcutils_allocator_t * allocator,
-  bool no_demangle,
   rmw_names_and_types_t * topic_names_and_types)
 {
   if (!allocator) {
@@ -57,11 +58,6 @@ _validate_input(
   rmw_ret_t ret = rmw_names_and_types_check_zero(topic_names_and_types);
   if (ret != RMW_RET_OK) {
     return ret;
-  }
-
-  if (no_demangle) {
-    RMW_SET_ERROR_MSG("no_demangle not implemented");
-    return RMW_RET_UNSUPPORTED;
   }
 
   return RMW_RET_OK;
@@ -80,10 +76,9 @@ _validate_input(
   rcutils_allocator_t * allocator,
   const char * node_name,
   const char * node_namespace,
-  bool no_demangle,
   rmw_names_and_types_t * topic_names_and_types)
 {
-  rmw_ret_t ret = _validate_input(node, allocator, no_demangle, topic_names_and_types);
+  rmw_ret_t ret = _validate_input(node, allocator, topic_names_and_types);
   if (ret != RMW_RET_OK) {
     return ret;
   }
@@ -106,7 +101,7 @@ _validate_input(
  *
  * @param topics to copy over
  * @param allocator to use
- * @param no_demangle true if demangling will not occur
+ * @param demangle_type the type demangling function
  * @param topic_names_and_types [out] final rmw result
  * @return RMW_RET_OK if successful
  */
@@ -114,6 +109,7 @@ static rmw_ret_t
 _copy_data_to_results(
   const std::map<std::string, std::set<std::string>> & topics,
   rcutils_allocator_t * allocator,
+  std::string (* demangle_type)(const std::string &),
   rmw_names_and_types_t * topic_names_and_types)
 {
   // Copy data to results handle
@@ -158,7 +154,7 @@ _copy_data_to_results(
       // Duplicate and store each type for the topic
       size_t type_index = 0;
       for (const auto & type : topic_n_types.second) {
-        char * type_name = rcutils_strdup(type.c_str(), *allocator);
+        char * type_name = rcutils_strdup(demangle_type(type).c_str(), *allocator);
         if (!type_name) {
           RMW_SET_ERROR_MSG("failed to allocate memory for type name");
           fail_cleanup();
@@ -191,7 +187,7 @@ rmw_get_subscriber_names_and_types_by_node(
     __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace, no_demangle,
     reinterpret_cast<void *>(topic_names_and_types));
 
-  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, no_demangle,
+  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace,
       topic_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
@@ -199,7 +195,9 @@ rmw_get_subscriber_names_and_types_by_node(
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_subscriber_names_and_types_by_node(node_name, node_namespace);
-  return _copy_data_to_results(topics, allocator, topic_names_and_types);
+  return _copy_data_to_results(topics, allocator,
+           no_demangle ? [] (const std::string & in) {return in;} : _demangle_if_ros_type,
+           topic_names_and_types);
 }
 
 rmw_ret_t
@@ -218,7 +216,7 @@ rmw_get_publisher_names_and_types_by_node(
     __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace, no_demangle,
     reinterpret_cast<void *>(topic_names_and_types));
 
-  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, no_demangle,
+  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace,
       topic_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
@@ -226,7 +224,9 @@ rmw_get_publisher_names_and_types_by_node(
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_publisher_names_and_types_by_node(node_name, node_namespace);
-  return _copy_data_to_results(topics, allocator, topic_names_and_types);
+  return _copy_data_to_results(topics, allocator,
+           no_demangle ? [] (const std::string & in) {return in;} : _demangle_if_ros_type,
+           topic_names_and_types);
 }
 
 rmw_ret_t
@@ -243,7 +243,7 @@ rmw_get_service_names_and_types_by_node(
     __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace,
     reinterpret_cast<void *>(service_names_and_types));
 
-  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, false,
+  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace,
       service_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
@@ -251,7 +251,8 @@ rmw_get_service_names_and_types_by_node(
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_service_names_and_types_by_node(node_name, node_namespace);
-  return _copy_data_to_results(topics, allocator, service_names_and_types);
+  return _copy_data_to_results(topics, allocator, _demangle_service_type_only,
+           service_names_and_types);
 }
 
 rmw_ret_t
@@ -268,7 +269,7 @@ rmw_get_client_names_and_types_by_node(
     __FUNCTION__, (void *)node, (void *)allocator, node_name, node_namespace,
     reinterpret_cast<void *>(service_names_and_types));
 
-  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace, false,
+  rmw_ret_t valid_input = _validate_input(node, allocator, node_name, node_namespace,
       service_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
@@ -276,7 +277,8 @@ rmw_get_client_names_and_types_by_node(
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_client_names_and_types_by_node(node_name, node_namespace);
-  return _copy_data_to_results(topics, allocator, service_names_and_types);
+  return _copy_data_to_results(topics, allocator, _demangle_service_type_only,
+           service_names_and_types);
 }
 
 rmw_ret_t
@@ -291,14 +293,16 @@ rmw_get_topic_names_and_types(
     "%s(node=%p,allocator=%p,no_demangle=%d,topic_names_and_types=%p)",
     __FUNCTION__, (void *)node, (void *)allocator, no_demangle, (void *)topic_names_and_types);
 
-  rmw_ret_t valid_input = _validate_input(node, allocator, no_demangle, topic_names_and_types);
+  rmw_ret_t valid_input = _validate_input(node, allocator, topic_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
   }
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_topic_names_and_types();
-  return _copy_data_to_results(topics, allocator, topic_names_and_types);
+  return _copy_data_to_results(topics, allocator,
+           no_demangle ? [] (const std::string & in) {return in;} : _demangle_if_ros_type,
+           topic_names_and_types);
 }
 
 rmw_ret_t
@@ -312,13 +316,14 @@ rmw_get_service_names_and_types(
     "%s(node=%p,allocator=%p,service_names_and_types=%p)", __FUNCTION__, (void *)node,
     (void *)allocator, (void *)service_names_and_types);
 
-  rmw_ret_t valid_input = _validate_input(node, allocator, false, service_names_and_types);
+  rmw_ret_t valid_input = _validate_input(node, allocator, service_names_and_types);
   if (valid_input != RMW_RET_OK) {
     return valid_input;
   }
 
   auto impl = static_cast<CustomNodeInfo *>(node->data);
   auto topics = impl->listener_->get_service_names_and_types();
-  return _copy_data_to_results(topics, allocator, service_names_and_types);
+  return _copy_data_to_results(topics, allocator, _demangle_service_type_only,
+           service_names_and_types);
 }
 }  // extern "C"

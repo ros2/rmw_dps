@@ -27,6 +27,7 @@ endif()
 
 find_package(ament_cmake_ros REQUIRED)
 
+find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 
 find_package(dps_for_iot_cmake_module REQUIRED)
@@ -43,6 +44,7 @@ include_directories(
 
 add_library(rmw_dps_cpp
   src/client_service_common.cpp
+  src/demangle.cpp
   src/identifier.cpp
   src/names_common.cpp
   src/namespace_prefix.cpp
@@ -81,6 +83,7 @@ target_link_libraries(rmw_dps_cpp
 # Add the definitions, include directories and libraries of packages
 # to a target
 ament_target_dependencies(rmw_dps_cpp
+  "rcpputils"
   "rcutils"
   "rosidl_typesupport_introspection_c"
   "rosidl_typesupport_introspection_cpp"
@@ -105,6 +108,7 @@ ament_export_libraries(rmw_dps_cpp)
 # Export dependencies to downstream packages
 ament_export_dependencies(rosidl_typesupport_introspection_cpp)
 ament_export_dependencies(rosidl_typesupport_introspection_c)
+ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(dps_for_iot_cmake_module)

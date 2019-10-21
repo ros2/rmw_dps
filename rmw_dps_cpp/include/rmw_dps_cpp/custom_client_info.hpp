@@ -18,6 +18,8 @@
 #include <dps/dps.h>
 #include <dps/event.h>
 
+#include <string>
+
 #include "rmw/rmw.h"
 
 #include "rmw_dps_cpp/Listener.hpp"
