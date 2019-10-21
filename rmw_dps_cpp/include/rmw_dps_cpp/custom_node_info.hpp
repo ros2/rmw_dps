@@ -288,12 +288,6 @@ public:
       for (auto it : uuid_node_pair.second.publishers) {
         names_and_types[it.topic].insert(it.types.begin(), it.types.end());
       }
-      for (auto it : uuid_node_pair.second.services) {
-        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
-      }
-      for (auto it : uuid_node_pair.second.clients) {
-        names_and_types[it.topic].insert(it.types.begin(), it.types.end());
-      }
     }
     return names_and_types;
   }
