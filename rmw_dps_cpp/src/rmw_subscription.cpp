@@ -58,18 +58,18 @@ rmw_create_subscription(
   const rosidl_message_type_support_t * type_supports,
   const char * topic_name,
   const rmw_qos_profile_t * qos_policies,
-  bool ignore_local_publications)
+  const rmw_subscription_options_t * subscription_options)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
     "qos_policies={history=%d,depth=%zu,reliability=%d,durability=%d},"
-    "ignore_local_publications=%d)",
+    "subscription_options=%p)",
     __FUNCTION__,
     reinterpret_cast<const void *>(node), reinterpret_cast<const void *>(type_supports),
     topic_name, qos_policies->history,
     qos_policies->depth, qos_policies->reliability, qos_policies->durability,
-    ignore_local_publications);
+    reinterpret_cast<const void *>(subscription_options));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -108,7 +108,6 @@ rmw_create_subscription(
     }
   }
 
-  (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
   std::string dps_topic = _get_dps_topic_name(impl->domain_id_, topic_name);
   const char * topic = dps_topic.c_str();

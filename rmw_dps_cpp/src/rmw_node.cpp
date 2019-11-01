@@ -264,15 +264,17 @@ rmw_create_node(
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  const rmw_node_security_options_t * security_options)
+  const rmw_node_security_options_t * security_options,
+  bool localhost_only)
 {
   // TODO(malsbat): implement RMW_SECURITY_ENFORCEMENT_PERMISSIVE, ENFORCE
+  // TODO(malsbat): implement localhost_only
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(name=%s,namespace_=%s,domain_id=%zu,"
-    "security_options={enforce_security=%d,security_root_path=%s})",
+    "security_options={enforce_security=%d,security_root_path=%s},localhost_only=%d)",
     __FUNCTION__, name, namespace_, domain_id, security_options->enforce_security,
-    security_options->security_root_path);
+    security_options->security_root_path, localhost_only);
 
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(

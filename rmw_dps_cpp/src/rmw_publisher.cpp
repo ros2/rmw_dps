@@ -98,16 +98,18 @@ rmw_create_publisher(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
   const char * topic_name,
-  const rmw_qos_profile_t * qos_policies)
+  const rmw_qos_profile_t * qos_policies,
+  const rmw_publisher_options_t * publisher_options)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s})",
+    "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s},publisher_options=%p)",
     __FUNCTION__, (void *)node, (void *)type_supports, topic_name,
     qos_history_string(qos_policies->history), qos_policies->depth,
     qos_reliability_string(qos_policies->reliability),
-    qos_durability_string(qos_policies->durability));
+    qos_durability_string(qos_policies->durability),
+    reinterpret_cast<const void *>(publisher_options));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -313,5 +315,32 @@ rmw_publisher_get_actual_qos(
   qos->depth = 1;
 
   return RMW_RET_OK;
+}
+
+rmw_ret_t
+rmw_borrow_loaned_message(
+  const rmw_publisher_t * publisher,
+  const rosidl_message_type_support_t * type_support,
+  void ** ros_message)
+{
+  (void) publisher;
+  (void) type_support;
+  (void) ros_message;
+
+  RMW_SET_ERROR_MSG("rmw_borrow_loaned_message not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_return_loaned_message_from_publisher(
+  const rmw_publisher_t * publisher,
+  void * loaned_message)
+{
+  (void) publisher;
+  (void) loaned_message;
+
+  RMW_SET_ERROR_MSG(
+    "rmw_return_loaned_message_from_publisher not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

@@ -232,4 +232,51 @@ rmw_take_event(
   RMW_SET_ERROR_MSG("unimplemented");
   return RMW_RET_ERROR;
 }
+
+rmw_ret_t
+rmw_take_loaned_message(
+  const rmw_subscription_t * subscription,
+  void ** loaned_message,
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
+{
+  (void) subscription;
+  (void) loaned_message;
+  (void) taken;
+  (void) allocation;
+
+  RMW_SET_ERROR_MSG("rmw_take_loaned_message not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_take_loaned_message_with_info(
+  const rmw_subscription_t * subscription,
+  void ** loaned_message,
+  bool * taken,
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
+{
+  (void) subscription;
+  (void) loaned_message;
+  (void) taken;
+  (void) message_info;
+  (void) allocation;
+
+  RMW_SET_ERROR_MSG("rmw_take_loaned_message_with_info not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_return_loaned_message_from_subscription(
+  const rmw_subscription_t * subscription,
+  void * loaned_message)
+{
+  (void) subscription;
+  (void) loaned_message;
+
+  RMW_SET_ERROR_MSG(
+    "rmw_return_loaned_message_from_subscription not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
+}
 }  // extern "C"
