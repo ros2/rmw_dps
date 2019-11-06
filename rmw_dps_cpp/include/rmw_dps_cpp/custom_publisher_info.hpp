@@ -28,6 +28,7 @@ typedef struct CustomPublisherInfo
   const rmw_node_t * node_;
   void * type_support_;
   const char * typesupport_identifier_;
+  rmw_qos_profile_t qos_;
   std::string discovery_name_;
 } CustomPublisherInfo;
 

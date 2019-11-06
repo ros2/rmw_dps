@@ -30,6 +30,7 @@ typedef struct CustomSubscriberInfo
   Listener * listener_;
   void * type_support_;
   const char * typesupport_identifier_;
+  rmw_qos_profile_t qos_;
   std::string discovery_name_;
 } CustomSubscriberInfo;
 

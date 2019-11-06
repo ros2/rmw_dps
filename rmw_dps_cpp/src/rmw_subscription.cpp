@@ -128,6 +128,13 @@ rmw_create_subscription(
     _register_type(impl->node_, info->type_support_, info->typesupport_identifier_);
   }
 
+
+  info->qos_ = *qos_policies;
+  /* Set to best-effort & volatile since QoS features are not supported by DPS at the moment. */
+  info->qos_.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  info->qos_.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  info->qos_.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+
   info->subscription_ = DPS_CreateSubscription(impl->node_, &topic, 1);
   if (!info->subscription_) {
     RMW_SET_ERROR_MSG("failed to create subscription");
@@ -267,12 +274,8 @@ rmw_subscription_get_actual_qos(
   RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
 
-  /* Set to best-effort & volatile since QoS features are not supported by DPS at the moment. */
-  qos->history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-  qos->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  qos->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  qos->depth = 1;
-
+  auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
+  *qos = info->qos_;
   return RMW_RET_OK;
 }
 }  // extern "C"
