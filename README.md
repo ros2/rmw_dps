@@ -28,8 +28,8 @@ Work is ongoing to complete full support for all rmw APIs.
 Completed:
 - Publishers and subscribers, services and clients
 - Message serialization and deserialization
+- Discoverability
 
 To be completed:
 - Full support of QoS
-- Discoverability
 - Pass through security configuration to DPS
