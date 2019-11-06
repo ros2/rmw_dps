@@ -25,6 +25,7 @@
 #include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
+#include "qos_common.hpp"
 #include "type_support_common.hpp"
 
 extern "C"
@@ -63,12 +64,12 @@ rmw_create_subscription(
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%d,depth=%zu,reliability=%d,durability=%d},"
-    "subscription_options=%p)",
-    __FUNCTION__,
-    reinterpret_cast<const void *>(node), reinterpret_cast<const void *>(type_supports),
-    topic_name, qos_policies->history,
-    qos_policies->depth, qos_policies->reliability, qos_policies->durability,
+    "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s},subscription_options=%p)",
+    __FUNCTION__, reinterpret_cast<const void *>(node),
+    reinterpret_cast<const void *>(type_supports), topic_name,
+    qos_history_string(qos_policies->history), qos_policies->depth,
+    qos_reliability_string(qos_policies->reliability),
+    qos_durability_string(qos_policies->durability),
     reinterpret_cast<const void *>(subscription_options));
 
   if (!node) {

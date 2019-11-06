@@ -24,49 +24,8 @@
 #include "rmw_dps_cpp/custom_publisher_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
+#include "qos_common.hpp"
 #include "type_support_common.hpp"
-
-const char * qos_history_string(rmw_qos_history_policy_t history)
-{
-  switch (history) {
-    case RMW_QOS_POLICY_HISTORY_KEEP_LAST:
-      return "KEEP_LAST";
-    case RMW_QOS_POLICY_HISTORY_KEEP_ALL:
-      return "KEEP_ALL";
-    case RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT:
-      return "SYSTEM_DEFAULT";
-    default:
-      return nullptr;
-  }
-}
-
-const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability)
-{
-  switch (reliability) {
-    case RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT:
-      return "BEST_EFFORT";
-    case RMW_QOS_POLICY_RELIABILITY_RELIABLE:
-      return "RELIABLE";
-    case RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT:
-      return "SYSTEM_DEFAULT";
-    default:
-      return nullptr;
-  }
-}
-
-const char * qos_durability_string(rmw_qos_durability_policy_t durability)
-{
-  switch (durability) {
-    case RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL:
-      return "TRANSIENT_LOCAL";
-    case RMW_QOS_POLICY_DURABILITY_VOLATILE:
-      return "VOLATILE";
-    case RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT:
-      return "SYSTEM_DEFAULT";
-    default:
-      return nullptr;
-  }
-}
 
 extern "C"
 {
@@ -105,7 +64,8 @@ rmw_create_publisher(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
     "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s},publisher_options=%p)",
-    __FUNCTION__, (void *)node, (void *)type_supports, topic_name,
+    __FUNCTION__, reinterpret_cast<const void *>(node),
+    reinterpret_cast<const void *>(type_supports), topic_name,
     qos_history_string(qos_policies->history), qos_policies->depth,
     qos_reliability_string(qos_policies->reliability),
     qos_durability_string(qos_policies->durability),
@@ -127,7 +87,7 @@ rmw_create_publisher(
   }
 
   if (!qos_policies) {
-    RMW_SET_ERROR_MSG("qos_profile is null");
+    RMW_SET_ERROR_MSG("qos_policies is null");
     return nullptr;
   }
 

@@ -49,6 +49,7 @@ add_library(rmw_dps_cpp
   src/names_common.cpp
   src/namespace_prefix.cpp
   src/publish_common.cpp
+  src/qos_common.cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
