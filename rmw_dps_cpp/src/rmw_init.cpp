@@ -22,6 +22,7 @@ __declspec(dllimport) int DPS_Debug;
 #else
 #include <dps/dbg.h>
 #endif
+#include <dps/dps.h>
 
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
@@ -35,7 +36,7 @@ rmw_init_options_init(rmw_init_options_t * init_options, rcutils_allocator_t all
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(init_options, RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ALLOCATOR(&allocator, return RMW_RET_INVALID_ARGUMENT);
-  if (NULL != init_options->implementation_identifier) {
+  if (nullptr != init_options->implementation_identifier) {
     RMW_SET_ERROR_MSG("expected zero-initialized init_options");
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -56,7 +57,7 @@ rmw_init_options_copy(const rmw_init_options_t * src, rmw_init_options_t * dst)
     src->implementation_identifier,
     intel_dps_identifier,
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  if (NULL != dst->implementation_identifier) {
+  if (nullptr != dst->implementation_identifier) {
     RMW_SET_ERROR_MSG("expected zero-initialized dst");
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -97,9 +98,10 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   context->implementation_identifier = intel_dps_identifier;
   context->impl = nullptr;
 
-  rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_ERROR);
+  rcutils_ret_t ret = rcutils_logging_set_logger_level("rmw_dps_cpp", RCUTILS_LOG_SEVERITY_INFO);
   (void)ret;
   DPS_Debug = 0;
+  DPS_InitUUID();
 
   return RMW_RET_OK;
 }

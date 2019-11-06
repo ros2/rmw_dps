@@ -29,12 +29,17 @@ _published(
 }
 
 DPS_Status
-publish(DPS_Publication * pub, const uint8_t * data, size_t size, DPS_Event * event)
+publish(DPS_Publication * pub, const uint8_t * data, size_t size)
 {
   DPS_Buffer buf = {const_cast<uint8_t *>(data), size};
+  DPS_Event * event = DPS_CreateEvent();
+  if (!event) {
+    return DPS_ERR_RESOURCES;
+  }
   DPS_Status ret = DPS_PublishBufs(pub, &buf, 1, 0, _published, event);
   if (ret == DPS_OK) {
     ret = DPS_WaitForEvent(event);
   }
+  DPS_DestroyEvent(event);
   return ret;
 }

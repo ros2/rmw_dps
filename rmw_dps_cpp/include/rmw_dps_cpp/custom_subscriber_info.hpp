@@ -17,16 +17,21 @@
 
 #include <dps/dps.h>
 
-#include "rmw_dps_cpp/Listener.hpp"
+#include <string>
+
+#include "rmw/rmw.h"
 
 class Listener;
 
 typedef struct CustomSubscriberInfo
 {
+  const rmw_node_t * node_;
   DPS_Subscription * subscription_;
   Listener * listener_;
   void * type_support_;
   const char * typesupport_identifier_;
+  rmw_qos_profile_t qos_;
+  std::string discovery_name_;
 } CustomSubscriberInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_

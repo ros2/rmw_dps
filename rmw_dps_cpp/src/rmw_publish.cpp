@@ -57,9 +57,11 @@ rmw_publish(
   if (_serialize_ros_message(ros_message, ser, info->type_support_,
     info->typesupport_identifier_))
   {
-    DPS_Status ret = publish(info->publication_, ser.data(), ser.size(), info->event_);
-    if (ret == DPS_OK) {
+    DPS_Status status = publish(info->publication_, ser.data(), ser.size());
+    if (status == DPS_OK) {
       returnedValue = RMW_RET_OK;
+    } else {
+      RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("cannot publish data - %s", DPS_ErrTxt(status));
     }
   } else {
     RMW_SET_ERROR_MSG("cannot serialize data");
@@ -88,13 +90,27 @@ rmw_publish_serialized_message(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     info, "publisher info pointer is null", return RMW_RET_ERROR);
 
-  DPS_Status ret = publish(info->publication_, serialized_message->buffer,
-      serialized_message->buffer_length, info->event_);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("cannot publish data");
+  DPS_Status status = publish(info->publication_, serialized_message->buffer,
+      serialized_message->buffer_length);
+  if (status != DPS_OK) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("cannot publish data - %s", DPS_ErrTxt(status));
     return RMW_RET_ERROR;
   }
 
   return RMW_RET_OK;
+}
+
+rmw_ret_t
+rmw_publish_loaned_message(
+  const rmw_publisher_t * publisher,
+  void * ros_message,
+  rmw_publisher_allocation_t * allocation)
+{
+  (void) publisher;
+  (void) ros_message;
+  (void) allocation;
+
+  RMW_SET_ERROR_MSG("rmw_publish_loaned_message not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

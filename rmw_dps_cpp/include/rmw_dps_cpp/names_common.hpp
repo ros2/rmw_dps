@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PUBLISH_COMMON_HPP_
-#define PUBLISH_COMMON_HPP_
+#ifndef RMW_DPS_CPP__NAMES_COMMON_HPP_
+#define RMW_DPS_CPP__NAMES_COMMON_HPP_
 
-#include <dps/dps.h>
-#include <dps/event.h>
+#include <string>
 
-DPS_Status
-publish(DPS_Publication * pub, const uint8_t * data, size_t size);
+#include "rmw/rmw.h"
 
-#endif  // PUBLISH_COMMON_HPP_
+std::string _get_dps_topic_name(size_t domain_id, const char * ros_topic_name);
+std::string _get_dps_topic_name(size_t domain_id, const std::string & ros_topic_name);
+
+#endif  // RMW_DPS_CPP__NAMES_COMMON_HPP_

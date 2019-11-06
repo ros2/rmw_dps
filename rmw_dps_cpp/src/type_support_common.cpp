@@ -109,12 +109,12 @@ _unregister_type(
 
   if (using_introspection_c_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<TypeSupport_c *>(untyped_typesupport);
-    if (false) {  // TODO(malsbat): unregisterType?
+    if (true) {  // TODO(malsbat): unregisterType?
       delete typed_typesupport;
     }
   } else if (using_introspection_cpp_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<TypeSupport_cpp *>(untyped_typesupport);
-    if (false) {  // TODO(malsbat): unregisterType?
+    if (true) {  // TODO(malsbat): unregisterType?
       delete typed_typesupport;
     }
   } else {

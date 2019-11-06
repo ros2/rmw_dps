@@ -23,49 +23,9 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_publisher_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
+#include "qos_common.hpp"
 #include "type_support_common.hpp"
-
-const char * qos_history_string(rmw_qos_history_policy_t history)
-{
-  switch (history) {
-    case RMW_QOS_POLICY_HISTORY_KEEP_LAST:
-      return "KEEP_LAST";
-    case RMW_QOS_POLICY_HISTORY_KEEP_ALL:
-      return "KEEP_ALL";
-    case RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT:
-      return "SYSTEM_DEFAULT";
-    default:
-      return nullptr;
-  }
-}
-
-const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability)
-{
-  switch (reliability) {
-    case RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT:
-      return "BEST_EFFORT";
-    case RMW_QOS_POLICY_RELIABILITY_RELIABLE:
-      return "RELIABLE";
-    case RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT:
-      return "SYSTEM_DEFAULT";
-    default:
-      return nullptr;
-  }
-}
-
-const char * qos_durability_string(rmw_qos_durability_policy_t durability)
-{
-  switch (durability) {
-    case RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL:
-      return "TRANSIENT_LOCAL";
-    case RMW_QOS_POLICY_DURABILITY_VOLATILE:
-      return "VOLATILE";
-    case RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT:
-      return "SYSTEM_DEFAULT";
-    default:
-      return nullptr;
-  }
-}
 
 extern "C"
 {
@@ -97,16 +57,19 @@ rmw_create_publisher(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
   const char * topic_name,
-  const rmw_qos_profile_t * qos_policies)
+  const rmw_qos_profile_t * qos_policies,
+  const rmw_publisher_options_t * publisher_options)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(node=%p,type_supports=%p,topic_name=%s,"
-    "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s})",
-    __FUNCTION__, (void *)node, (void *)type_supports, topic_name,
+    "qos_policies={history=%s,depth=%zu,reliability=%s,durability=%s},publisher_options=%p)",
+    __FUNCTION__, reinterpret_cast<const void *>(node),
+    reinterpret_cast<const void *>(type_supports), topic_name,
     qos_history_string(qos_policies->history), qos_policies->depth,
     qos_reliability_string(qos_policies->reliability),
-    qos_durability_string(qos_policies->durability));
+    qos_durability_string(qos_policies->durability),
+    reinterpret_cast<const void *>(publisher_options));
 
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -124,7 +87,7 @@ rmw_create_publisher(
   }
 
   if (!qos_policies) {
-    RMW_SET_ERROR_MSG("qos_profile is null");
+    RMW_SET_ERROR_MSG("qos_policies is null");
     return nullptr;
   }
 
@@ -151,12 +114,14 @@ rmw_create_publisher(
   }
 
   CustomPublisherInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &topic_name[1];
+  std::string dps_topic = _get_dps_topic_name(impl->domain_id_, topic_name);
+  const char * topic = dps_topic.c_str();
   rmw_publisher_t * rmw_publisher = nullptr;
+  rmw_dps_cpp::cbor::TxStream ser;
   DPS_Status ret;
 
   info = new CustomPublisherInfo();
+  info->node_ = node;
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
@@ -167,11 +132,12 @@ rmw_create_publisher(
     _register_type(impl->node_, info->type_support_, info->typesupport_identifier_);
   }
 
-  info->event_ = DPS_CreateEvent();
-  if (!info->event_) {
-    RMW_SET_ERROR_MSG("failed to create event");
-    goto fail;
-  }
+  info->qos_ = *qos_policies;
+  /* Set to best-effort & volatile since QoS features are not supported by DPS at the moment. */
+  info->qos_.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  info->qos_.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  info->qos_.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+
   info->publication_ = DPS_CreatePublication(impl->node_);
   if (!info->publication_) {
     RMW_SET_ERROR_MSG("failed to create publication");
@@ -198,15 +164,10 @@ rmw_create_publisher(
   }
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
 
-  // TODO(malsbat): triggering the guard condition to emulate EDP for now
-  {
-    rmw_ret_t ret = rmw_trigger_guard_condition(impl->graph_guard_condition_);
-    if (ret != RMW_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dps_cpp",
-        "failed to trigger graph guard condition: %s",
-        rmw_get_error_string().str);
-    }
+  info->discovery_name_ = dps_publisher_prefix + std::string(topic_name) +
+    "&types=" + type_name;
+  if (_add_discovery_topic(impl, info->discovery_name_) != RMW_RET_OK) {
+    goto fail;
   }
 
   return rmw_publisher;
@@ -214,10 +175,7 @@ rmw_create_publisher(
 fail:
   _delete_typesupport(info->type_support_, info->typesupport_identifier_);
   if (info->publication_) {
-    DPS_DestroyPublication(info->publication_);
-  }
-  if (info->event_) {
-    DPS_DestroyEvent(info->event_);
+    DPS_DestroyPublication(info->publication_, nullptr);
   }
   delete info;
 
@@ -236,7 +194,6 @@ rmw_publisher_count_matched_subscriptions(
   const rmw_publisher_t * publisher,
   size_t * subscription_count)
 {
-  // TODO(malsbat): implement
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_dps_cpp",
     "%s(publisher=%p,subscription_count=%p)", __FUNCTION__, (void *)publisher,
@@ -245,6 +202,9 @@ rmw_publisher_count_matched_subscriptions(
   RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(subscription_count, RMW_RET_INVALID_ARGUMENT);
 
+  auto info = static_cast<CustomPublisherInfo *>(publisher->data);
+  auto impl = static_cast<CustomNodeInfo *>(info->node_->data);
+  *subscription_count = impl->listener_->count_subscribers(publisher->topic_name);
   return RMW_RET_OK;
 }
 
@@ -259,9 +219,13 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
     RMW_SET_ERROR_MSG("node handle is null");
     return RMW_RET_ERROR;
   }
-
   if (node->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("publisher handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  if (!impl) {
+    RMW_SET_ERROR_MSG("node impl is null");
     return RMW_RET_ERROR;
   }
 
@@ -269,27 +233,19 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
     RMW_SET_ERROR_MSG("publisher handle is null");
     return RMW_RET_ERROR;
   }
-
   if (publisher->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("publisher handle not from this implementation");
     return RMW_RET_ERROR;
   }
 
+  rmw_dps_cpp::cbor::TxStream ser;
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
   if (info) {
+    _remove_discovery_topic(impl, info->discovery_name_);
     if (info->publication_) {
-      DPS_DestroyPublication(info->publication_);
-    }
-    if (info->event_) {
-      DPS_DestroyEvent(info->event_);
+      DPS_DestroyPublication(info->publication_, nullptr);
     }
     if (info->type_support_) {
-      auto impl = static_cast<CustomNodeInfo *>(node->data);
-      if (!impl) {
-        RMW_SET_ERROR_MSG("node impl is null");
-        return RMW_RET_ERROR;
-      }
-
       _unregister_type(impl->node_, info->type_support_, info->typesupport_identifier_);
     }
   }
@@ -318,12 +274,35 @@ rmw_publisher_get_actual_qos(
   RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
 
-  /* Set to best-effort & volatile since QoS features are not supported by DPS at the moment. */
-  qos->history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-  qos->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  qos->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  qos->depth = 1;
-
+  auto info = static_cast<CustomPublisherInfo *>(publisher->data);
+  *qos = info->qos_;
   return RMW_RET_OK;
+}
+
+rmw_ret_t
+rmw_borrow_loaned_message(
+  const rmw_publisher_t * publisher,
+  const rosidl_message_type_support_t * type_support,
+  void ** ros_message)
+{
+  (void) publisher;
+  (void) type_support;
+  (void) ros_message;
+
+  RMW_SET_ERROR_MSG("rmw_borrow_loaned_message not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_return_loaned_message_from_publisher(
+  const rmw_publisher_t * publisher,
+  void * loaned_message)
+{
+  (void) publisher;
+  (void) loaned_message;
+
+  RMW_SET_ERROR_MSG(
+    "rmw_return_loaned_message_from_publisher not implemented for rmw_dps_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

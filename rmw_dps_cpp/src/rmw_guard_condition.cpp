@@ -25,12 +25,12 @@ extern "C"
 rmw_guard_condition_t *
 rmw_create_guard_condition(rmw_context_t * context)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
     intel_dps_identifier,
-    return NULL);
+    return nullptr);
 
   rmw_guard_condition_t * guard_condition_handle = new rmw_guard_condition_t;
   guard_condition_handle->implementation_identifier = intel_dps_identifier;

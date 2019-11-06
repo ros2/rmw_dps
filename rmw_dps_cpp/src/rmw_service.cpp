@@ -24,6 +24,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_service_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 #include "client_service_common.hpp"
 #include "type_support_common.hpp"
 
@@ -81,9 +82,10 @@ rmw_create_service(
   }
 
   CustomServiceInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &service_name[1];
+  std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service_name);
+  const char * topic = dps_topic.c_str();
   rmw_service_t * rmw_service = nullptr;
+  rmw_dps_cpp::cbor::TxStream ser;
   DPS_Status ret;
 
   info = new CustomServiceInfo();
@@ -149,13 +151,20 @@ rmw_create_service(
   memcpy(const_cast<char *>(rmw_service->service_name), service_name,
     strlen(service_name) + 1);
 
+  info->discovery_name_ = dps_service_prefix + std::string(service_name) +
+    "&types=" + request_type_name + "," + response_type_name;
+  if (_add_discovery_topic(impl, info->discovery_name_) != RMW_RET_OK) {
+    goto fail;
+  }
+
   return rmw_service;
 
 fail:
   if (info->request_subscription_) {
-    DPS_DestroySubscription(info->request_subscription_);
+    DPS_DestroySubscription(info->request_subscription_, [](DPS_Subscription * sub) {
+        delete reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+      });
   }
-  delete info->request_listener_;
   if (info->request_type_support_) {
     _unregister_type(impl->node_, info->request_type_support_, info->typesupport_identifier_);
   }
@@ -185,9 +194,13 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     RMW_SET_ERROR_MSG("node handle is null");
     return RMW_RET_ERROR;
   }
-
   if (node->implementation_identifier != intel_dps_identifier) {
     RMW_SET_ERROR_MSG("node handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  if (!impl) {
+    RMW_SET_ERROR_MSG("node impl is null");
     return RMW_RET_ERROR;
   }
 
@@ -200,13 +213,15 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     return RMW_RET_ERROR;
   }
 
+  rmw_dps_cpp::cbor::TxStream ser;
   auto info = static_cast<CustomServiceInfo *>(service->data);
-
   if (info) {
+    _remove_discovery_topic(impl, info->discovery_name_);
     if (info->request_subscription_) {
-      DPS_DestroySubscription(info->request_subscription_);
+      DPS_DestroySubscription(info->request_subscription_, [](DPS_Subscription * sub) {
+          delete reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));
+        });
     }
-    delete info->request_listener_;
     if (info->request_type_support_) {
       _unregister_type(info->node_, info->request_type_support_,
         info->typesupport_identifier_);

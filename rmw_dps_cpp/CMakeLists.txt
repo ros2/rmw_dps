@@ -27,6 +27,7 @@ endif()
 
 find_package(ament_cmake_ros REQUIRED)
 
+find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 
 find_package(dps_for_iot_cmake_module REQUIRED)
@@ -43,8 +44,12 @@ include_directories(
 
 add_library(rmw_dps_cpp
   src/client_service_common.cpp
+  src/demangle.cpp
   src/identifier.cpp
+  src/names_common.cpp
+  src/namespace_prefix.cpp
   src/publish_common.cpp
+  src/qos_common.cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
@@ -63,11 +68,9 @@ add_library(rmw_dps_cpp
   src/rmw_response.cpp
   src/rmw_serialize.cpp
   src/rmw_service.cpp
-  src/rmw_service_names_and_types.cpp
   src/rmw_service_server_is_available.cpp
   src/rmw_subscription.cpp
   src/rmw_take.cpp
-  src/rmw_topic_names_and_types.cpp
   src/rmw_trigger_guard_condition.cpp
   src/rmw_wait.cpp
   src/rmw_wait_set.cpp
@@ -81,6 +84,7 @@ target_link_libraries(rmw_dps_cpp
 # Add the definitions, include directories and libraries of packages
 # to a target
 ament_target_dependencies(rmw_dps_cpp
+  "rcpputils"
   "rcutils"
   "rosidl_typesupport_introspection_c"
   "rosidl_typesupport_introspection_cpp"
@@ -105,6 +109,7 @@ ament_export_libraries(rmw_dps_cpp)
 # Export dependencies to downstream packages
 ament_export_dependencies(rosidl_typesupport_introspection_cpp)
 ament_export_dependencies(rosidl_typesupport_introspection_c)
+ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(dps_for_iot_cmake_module)
@@ -120,8 +125,6 @@ register_rmw_implementation(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
-  add_subdirectory(test)
 endif()
 
 ament_package(

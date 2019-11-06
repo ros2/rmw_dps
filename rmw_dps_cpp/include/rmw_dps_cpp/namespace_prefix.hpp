@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PUBLISH_COMMON_HPP_
-#define PUBLISH_COMMON_HPP_
+#ifndef RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_
+#define RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_
 
-#include <dps/dps.h>
-#include <dps/event.h>
+#include "rmw/visibility_control.h"
 
-DPS_Status
-publish(DPS_Publication * pub, const uint8_t * data, size_t size);
+extern "C"
+{
+extern const char * const dps_uuid_prefix;
+extern const char * const dps_namespace_prefix;
+extern const char * const dps_name_prefix;
+extern const char * const dps_subscriber_prefix;
+extern const char * const dps_publisher_prefix;
+extern const char * const dps_service_prefix;
+extern const char * const dps_client_prefix;
+}  // extern "C"
 
-#endif  // PUBLISH_COMMON_HPP_
+#endif  // RMW_DPS_CPP__NAMESPACE_PREFIX_HPP_

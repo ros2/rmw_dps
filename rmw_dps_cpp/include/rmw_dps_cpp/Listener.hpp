@@ -29,7 +29,7 @@
 
 struct PublicationDeleter
 {
-  void operator()(DPS_Publication * pub) {DPS_DestroyPublication(pub);}
+  void operator()(DPS_Publication * pub) {DPS_DestroyPublication(pub, nullptr);}
 };
 
 typedef std::unique_ptr<DPS_Publication, PublicationDeleter> Publication;
@@ -52,7 +52,7 @@ public:
       "%s(sub=%p,pub=%p,payload=%p,len=%zu)", __FUNCTION__, (void *)sub, (void *)pub, payload, len);
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dps_cpp",
-      "pub={uuid=%s,sequenceNum=%d}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
+      "  pub={uuid=%s,sequenceNum=%d}", DPS_UUIDToString(DPS_PublicationGetUUID(pub)),
       DPS_PublicationGetSequenceNum(pub));
 
     Listener * listener = reinterpret_cast<Listener *>(DPS_GetSubscriptionData(sub));

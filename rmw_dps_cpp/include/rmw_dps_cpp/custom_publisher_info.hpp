@@ -18,17 +18,18 @@
 #include <dps/dps.h>
 #include <dps/event.h>
 
-#include <mutex>
-#include <queue>
+#include <string>
 
 #include "rmw/rmw.h"
 
 typedef struct CustomPublisherInfo
 {
-  DPS_Event * event_;
   DPS_Publication * publication_;
+  const rmw_node_t * node_;
   void * type_support_;
   const char * typesupport_identifier_;
+  rmw_qos_profile_t qos_;
+  std::string discovery_name_;
 } CustomPublisherInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_PUBLISHER_INFO_HPP_

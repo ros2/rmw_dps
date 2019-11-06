@@ -18,6 +18,7 @@
 #include <dps/dps.h>
 
 #include <map>
+#include <string>
 
 #include "rmw_dps_cpp/Listener.hpp"
 
@@ -36,6 +37,7 @@ typedef struct CustomServiceInfo
   std::map<rmw_request_id_t, Publication> requests_;
   DPS_Node * node_;
   const char * typesupport_identifier_;
+  std::string discovery_name_;
 } CustomServiceInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_SERVICE_INFO_HPP_

@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PUBLISH_COMMON_HPP_
-#define PUBLISH_COMMON_HPP_
+#ifndef DEMANGLE_HPP_
+#define DEMANGLE_HPP_
 
-#include <dps/dps.h>
-#include <dps/event.h>
+#include <string>
 
-DPS_Status
-publish(DPS_Publication * pub, const uint8_t * data, size_t size);
+/// Return the demangled ROS type or the original if not a ROS type.
+std::string
+_demangle_if_ros_type(const std::string & dps_type_string);
 
-#endif  // PUBLISH_COMMON_HPP_
+/// Return the demangled service type if it is a ROS srv type, else "".
+std::string
+_demangle_service_type_only(const std::string & dps_type_name);
+
+#endif  // DEMANGLE_HPP_

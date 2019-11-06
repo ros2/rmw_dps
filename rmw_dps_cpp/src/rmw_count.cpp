@@ -14,7 +14,10 @@
 
 #include "rcutils/logging_macros.h"
 
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
+
+#include "rmw_dps_cpp/custom_node_info.hpp"
 
 extern "C"
 {
@@ -28,8 +31,13 @@ rmw_count_publishers(
     "rmw_dps_cpp",
     "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, (void *)node, topic_name, (void *)count);
 
-  // TODO(malsbat): implement
-  *count = 0;
+  if (!node) {
+    RMW_SET_ERROR_MSG("null node handle");
+    return RMW_RET_ERROR;
+  }
+
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  *count = impl->listener_->count_publishers(topic_name);
   return RMW_RET_OK;
 }
 
@@ -43,8 +51,13 @@ rmw_count_subscribers(
     "rmw_dps_cpp",
     "%s(node=%p,topic_name=%s,count=%p)", __FUNCTION__, (void *)node, topic_name, (void *)count);
 
-  // TODO(malsbat): implement
-  *count = 0;
+  if (!node) {
+    RMW_SET_ERROR_MSG("null node handle");
+    return RMW_RET_ERROR;
+  }
+
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  *count = impl->listener_->count_subscribers(topic_name);
   return RMW_RET_OK;
 }
 }  // extern "C"

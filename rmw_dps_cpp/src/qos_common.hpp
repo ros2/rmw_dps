@@ -1,4 +1,4 @@
-// Copyright 2018 Intel Corporation All rights reserved.
+// Copyright 2019 Intel Corporation All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,29 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcutils/logging_macros.h"
+#ifndef QOS_COMMON_HPP_
+#define QOS_COMMON_HPP_
 
-#include "rmw/get_service_names_and_types.h"
-#include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
 
-extern "C"
-{
-rmw_ret_t
-rmw_get_service_names_and_types(
-  const rmw_node_t * node,
-  rcutils_allocator_t * allocator,
-  rmw_names_and_types_t * service_names_and_types)
-{
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_dps_cpp",
-    __FUNCTION__);
+const char * qos_history_string(rmw_qos_history_policy_t history);
+const char * qos_reliability_string(rmw_qos_reliability_policy_t reliability);
+const char * qos_durability_string(rmw_qos_durability_policy_t durability);
 
-  // TODO(malsbat): implement
-  (void)node;
-  (void)allocator;
-  (void)service_names_and_types;
-
-  return RMW_RET_OK;
-}
-}  // extern "C"
+#endif  // QOS_COMMON_HPP_

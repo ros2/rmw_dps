@@ -18,6 +18,8 @@
 #include <dps/dps.h>
 #include <dps/event.h>
 
+#include <string>
+
 #include "rmw/rmw.h"
 
 #include "rmw_dps_cpp/Listener.hpp"
@@ -26,11 +28,11 @@ typedef struct CustomClientInfo
 {
   void * request_type_support_;
   void * response_type_support_;
-  DPS_Event * event_;
   DPS_Publication * request_publication_;
   Listener * response_listener_;
   DPS_Node * node_;
   const char * typesupport_identifier_;
+  std::string discovery_name_;
 } CustomClientInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_CLIENT_INFO_HPP_

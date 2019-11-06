@@ -23,6 +23,7 @@
 #include "rmw_dps_cpp/custom_node_info.hpp"
 #include "rmw_dps_cpp/custom_client_info.hpp"
 #include "rmw_dps_cpp/identifier.hpp"
+#include "rmw_dps_cpp/names_common.hpp"
 #include "client_service_common.hpp"
 #include "type_support_common.hpp"
 
@@ -85,10 +86,10 @@ rmw_create_client(
   }
 
   CustomClientInfo * info = nullptr;
-  // Topic string cannot start with a separator (/)
-  const char * topic = &service_name[1];
+  std::string dps_topic = _get_dps_topic_name(impl->domain_id_, service_name);
+  const char * topic = dps_topic.c_str();
   rmw_client_t * rmw_client = nullptr;
-  DPS_Status ret;
+  DPS_Status status;
 
   info = new CustomClientInfo();
   info->node_ = impl->node_;
@@ -119,26 +120,23 @@ rmw_create_client(
     _register_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
   }
 
-  info->event_ = DPS_CreateEvent();
-  if (!info->event_) {
-    RMW_SET_ERROR_MSG("failed to create event");
-    goto fail;
-  }
   info->request_publication_ = DPS_CreatePublication(impl->node_);
   if (!info->request_publication_) {
     RMW_SET_ERROR_MSG("failed to create publication");
     goto fail;
   }
   info->response_listener_ = new Listener;
-  ret = DPS_SetPublicationData(info->request_publication_, info->response_listener_);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to set subscription data");
+  status = DPS_SetPublicationData(info->request_publication_, info->response_listener_);
+  if (status != DPS_OK) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to set subscription data - %s",
+      DPS_ErrTxt(status));
     goto fail;
   }
-  ret = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE, nullptr,
+  status = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE, nullptr,
       Listener::onAcknowledgement);
-  if (ret != DPS_OK) {
-    RMW_SET_ERROR_MSG("failed to initialize publication");
+  if (status != DPS_OK) {
+    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to initialize publication - %s",
+      DPS_ErrTxt(status));
     goto fail;
   }
 
@@ -156,6 +154,12 @@ rmw_create_client(
     goto fail;
   }
   memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
+
+  info->discovery_name_ = dps_client_prefix + std::string(service_name) +
+    "&types=" + request_type_name + "," + response_type_name;
+  if (_add_discovery_topic(impl, info->discovery_name_) != RMW_RET_OK) {
+    goto fail;
+  }
 
   return rmw_client;
 
@@ -175,12 +179,10 @@ fail:
   }
   // TODO(malsbat): _delete_typesupport ?
   if (info->request_publication_) {
-    DPS_DestroyPublication(info->request_publication_);
+    DPS_DestroyPublication(info->request_publication_, [](DPS_Publication * pub) {
+        delete reinterpret_cast<Listener *>(DPS_GetPublicationData(pub));
+      });
   }
-  if (info->event_) {
-    DPS_DestroyEvent(info->event_);
-  }
-  delete info->response_listener_;
   delete info;
 
   if (rmw_client) {
@@ -209,6 +211,11 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     RMW_SET_ERROR_MSG("client handle not from this implementation");
     return RMW_RET_ERROR;
   }
+  auto impl = static_cast<CustomNodeInfo *>(node->data);
+  if (!impl) {
+    RMW_SET_ERROR_MSG("node impl is null");
+    return RMW_RET_ERROR;
+  }
 
   if (!client) {
     RMW_SET_ERROR_MSG("client handle is null");
@@ -222,6 +229,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
 
   auto info = static_cast<CustomClientInfo *>(client->data);
   if (info) {
+    _remove_discovery_topic(impl, info->discovery_name_);
     if (info->request_type_support_) {
       _unregister_type(info->node_, info->request_type_support_,
         info->typesupport_identifier_);
@@ -232,10 +240,9 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     }
     // TODO(malsbat): _delete_typesupport ?
     if (info->request_publication_) {
-      DPS_DestroyPublication(info->request_publication_);
-    }
-    if (info->event_) {
-      DPS_DestroyEvent(info->event_);
+      DPS_DestroyPublication(info->request_publication_, [](DPS_Publication * pub) {
+          delete reinterpret_cast<Listener *>(DPS_GetPublicationData(pub));
+        });
     }
   }
   delete info;
