@@ -6,7 +6,7 @@ docker run -dit -v "${TRAVIS_BUILD_DIR}/..:/shared"  --network host --name=osrf_
 docker exec osrf_ros2_nightly /bin/bash -c "git config --global user.name nobody"
 docker exec osrf_ros2_nightly /bin/bash -c "git config --global user.email noreply@osrfoundation.org"
 
-docker exec osrf_ros2_nightly /bin/bash -c "apt-get update && source /opt/ros/dashing/setup.bash && rosdep update && rosdep install --from-paths /shared/rmw_dps --ignore-src -r -y"
-docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/rmw_dps && colcon build --packages-up-to rmw_dps_cpp"
-docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/rmw_dps && colcon test"
-docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/dashing/setup.bash && cd /shared/rmw_dps && colcon test-result --verbose"
+docker exec osrf_ros2_nightly /bin/bash -c "apt-get update && source /opt/ros/eloquent/setup.bash && rosdep update && rosdep install --from-paths /shared/rmw_dps --ignore-src -r -y"
+docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/eloquent/setup.bash && cd /shared/rmw_dps && colcon build --packages-up-to rmw_dps_cpp"
+docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/eloquent/setup.bash && cd /shared/rmw_dps && colcon test"
+docker exec osrf_ros2_nightly /bin/bash -c "source /opt/ros/eloquent/setup.bash && cd /shared/rmw_dps && colcon test-result --verbose"
