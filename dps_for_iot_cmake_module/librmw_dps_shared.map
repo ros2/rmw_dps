@@ -33,6 +33,7 @@
     DPS_CopyPublication;
     DPS_CreateAddress;
     DPS_CreateDiscoveryService;
+    DPS_CreateDispatcher;
     DPS_CreateEvent;
     DPS_CreateKeyStore;
     DPS_CreateMemoryKeyStore;
@@ -43,6 +44,7 @@
     DPS_Debug;
     DPS_DestroyAddress;
     DPS_DestroyDiscoveryService;
+    DPS_DestroyDispatcher;
     DPS_DestroyEvent;
     DPS_DestroyKeyStore;
     DPS_DestroyMemoryKeyStore;
@@ -51,6 +53,7 @@
     DPS_DestroyRegistrationList;
     DPS_DestroySubscription;
     DPS_DiscoveryPublish;
+    DPS_Dispatch;
     DPS_ErrTxt;
     DPS_GenerateUUID;
     DPS_GetDiscoveryServiceData;
@@ -92,6 +95,7 @@
     DPS_RegistryTopicString;
     DPS_ResolveAddress;
     DPS_RxBufferFree;
+    DPS_ScheduleCall;
     DPS_SetAddress;
     DPS_SetCA;
     DPS_SetCertificate;
@@ -101,8 +105,10 @@
     DPS_SetKey;
     DPS_SetKeyAndId;
     DPS_SetKeyStoreData;
+    DPS_SetLinkLossCallback;
     DPS_SetNetworkKey;
     DPS_SetNodeData;
+    DPS_SetNodeLinkLossTimeout;
     DPS_SetNodeSubscriptionUpdateDelay;
     DPS_SetPublicationData;
     DPS_SetSubscriptionData;
