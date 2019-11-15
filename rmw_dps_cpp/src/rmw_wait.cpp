@@ -45,8 +45,8 @@ check_wait_set_for_data(
   if (clients) {
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
-      auto custom_client_info = static_cast<CustomClientInfo *>(data);
-      if (custom_client_info && custom_client_info->response_listener_->hasData()) {
+      CustomClientInfo * custom_client_info = static_cast<CustomClientInfo *>(data);
+      if (custom_client_info && custom_client_info->listener_->hasData()) {
         return true;
       }
     }
@@ -55,8 +55,8 @@ check_wait_set_for_data(
   if (services) {
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
-      auto custom_service_info = static_cast<CustomServiceInfo *>(data);
-      if (custom_service_info && custom_service_info->request_listener_->hasData()) {
+      CustomServiceInfo * custom_service_info = static_cast<CustomServiceInfo *>(data);
+      if (custom_service_info && custom_service_info->listener_->hasData()) {
         return true;
       }
     }
@@ -86,16 +86,10 @@ rmw_wait(
   rmw_wait_set_t * wait_set,
   const rmw_time_t * wait_timeout)
 {
-  (void)events;
-
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_dps_cpp",
-    "%s(subscriptions=%p,guard_conditions=%p,services=%p,clients=%p,events=%p,wait_set=%p,"
-    "wait_timeout=%p)",
-    __FUNCTION__, (void *)subscriptions, (void *)guard_conditions, (void *)services,
-    reinterpret_cast<void *>(clients), reinterpret_cast<void *>(events),
-    reinterpret_cast<void *>(wait_set), reinterpret_cast<const void *>(wait_timeout));
-
+  if (events && events->event_count) {
+    RMW_SET_ERROR_MSG("unimplemented");
+    return RMW_RET_ERROR;
+  }
   if (!wait_set) {
     RMW_SET_ERROR_MSG("wait set handle is null");
     return RMW_RET_ERROR;
@@ -127,8 +121,8 @@ rmw_wait(
   if (clients) {
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
-      auto custom_client_info = static_cast<CustomClientInfo *>(data);
-      custom_client_info->response_listener_->attachCondition(conditionMutex, conditionVariable);
+      CustomClientInfo * custom_client_info = static_cast<CustomClientInfo *>(data);
+      custom_client_info->listener_->attachCondition(conditionMutex, conditionVariable);
     }
   }
 
@@ -136,7 +130,7 @@ rmw_wait(
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
       auto custom_service_info = static_cast<CustomServiceInfo *>(data);
-      custom_service_info->request_listener_->attachCondition(conditionMutex, conditionVariable);
+      custom_service_info->listener_->attachCondition(conditionMutex, conditionVariable);
     }
   }
 
@@ -154,7 +148,8 @@ rmw_wait(
   // otherwise the decision to wait might be incorrect
   std::unique_lock<std::mutex> lock(*conditionMutex);
 
-  bool hasData = check_wait_set_for_data(subscriptions, guard_conditions, services, clients);
+  bool hasData = check_wait_set_for_data(
+    subscriptions, guard_conditions, services, clients);
   auto predicate = [subscriptions, guard_conditions, services, clients]() {
       return check_wait_set_for_data(subscriptions, guard_conditions, services, clients);
     };
@@ -194,9 +189,9 @@ rmw_wait(
   if (clients) {
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
-      auto custom_client_info = static_cast<CustomClientInfo *>(data);
-      custom_client_info->response_listener_->detachCondition();
-      if (!custom_client_info->response_listener_->hasData()) {
+      CustomClientInfo * custom_client_info = static_cast<CustomClientInfo *>(data);
+      custom_client_info->listener_->detachCondition();
+      if (!custom_client_info->listener_->hasData()) {
         clients->clients[i] = 0;
       }
     }
@@ -206,8 +201,8 @@ rmw_wait(
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
       auto custom_service_info = static_cast<CustomServiceInfo *>(data);
-      custom_service_info->request_listener_->detachCondition();
-      if (!custom_service_info->request_listener_->hasData()) {
+      custom_service_info->listener_->detachCondition();
+      if (!custom_service_info->listener_->hasData()) {
         services->services[i] = 0;
       }
     }

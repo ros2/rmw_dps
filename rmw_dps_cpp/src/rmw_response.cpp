@@ -58,7 +58,7 @@ rmw_take_response(
   rmw_dps_cpp::cbor::RxStream buffer;
   Publication pub;
 
-  if (info->response_listener_->takeNextData(buffer, pub)) {
+  if (info->listener_->takeNextData(buffer, pub)) {
     _deserialize_ros_message(buffer, ros_response, info->response_type_support_,
       info->typesupport_identifier_);
 

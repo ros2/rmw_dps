@@ -103,7 +103,7 @@ rmw_take_request(
   rmw_dps_cpp::cbor::RxStream buffer;
   Publication pub;
 
-  if (info->request_listener_->takeNextData(buffer, pub)) {
+  if (info->listener_->takeNextData(buffer, pub)) {
     _deserialize_ros_message(buffer, ros_request, info->request_type_support_,
       info->typesupport_identifier_);
 

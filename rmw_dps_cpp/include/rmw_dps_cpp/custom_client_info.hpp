@@ -29,7 +29,7 @@ typedef struct CustomClientInfo
   void * request_type_support_;
   void * response_type_support_;
   DPS_Publication * request_publication_;
-  Listener * response_listener_;
+  Listener * listener_;
   DPS_Node * node_;
   const char * typesupport_identifier_;
   std::string discovery_name_;

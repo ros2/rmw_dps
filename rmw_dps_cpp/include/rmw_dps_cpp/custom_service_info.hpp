@@ -33,7 +33,7 @@ typedef struct CustomServiceInfo
   void * request_type_support_;
   void * response_type_support_;
   DPS_Subscription * request_subscription_;
-  Listener * request_listener_;
+  Listener * listener_;
   std::map<rmw_request_id_t, Publication> requests_;
   DPS_Node * node_;
   const char * typesupport_identifier_;
