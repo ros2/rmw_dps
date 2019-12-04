@@ -170,6 +170,10 @@ rmw_create_publisher(
     goto fail;
   }
 
+  {
+    std::lock_guard<std::mutex> lock(impl->publishers_mutex_);
+    impl->publishers_[topic_name].insert(info);
+  }
   return rmw_publisher;
 
 fail:
@@ -203,8 +207,9 @@ rmw_publisher_count_matched_subscriptions(
   RMW_CHECK_ARGUMENT_FOR_NULL(subscription_count, RMW_RET_INVALID_ARGUMENT);
 
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
-  auto impl = static_cast<CustomNodeInfo *>(info->node_->data);
-  *subscription_count = impl->listener_->count_subscribers(publisher->topic_name);
+  if (info != nullptr) {
+    *subscription_count = info->subscriptions_matched_count_.load();
+  }
   return RMW_RET_OK;
 }
 
@@ -240,6 +245,10 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
   if (info) {
+    if (publisher->topic_name) {
+      std::lock_guard<std::mutex> lock(impl->publishers_mutex_);
+      impl->publishers_[publisher->topic_name].erase(info);
+    }
     _remove_discovery_topic(impl, info->discovery_name_);
     if (info->publication_) {
       DPS_DestroyPublication(info->publication_, nullptr);

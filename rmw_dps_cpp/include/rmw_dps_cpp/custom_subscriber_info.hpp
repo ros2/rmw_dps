@@ -17,6 +17,8 @@
 
 #include <dps/dps.h>
 
+#include <atomic>
+#include <set>
 #include <string>
 
 #include "rmw/rmw.h"
@@ -32,6 +34,8 @@ typedef struct CustomSubscriberInfo
   const char * typesupport_identifier_;
   rmw_qos_profile_t qos_;
   std::string discovery_name_;
+  std::set<std::string> publishers_;
+  std::atomic_size_t publishers_matched_count_;
 } CustomSubscriberInfo;
 
 #endif  // RMW_DPS_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_

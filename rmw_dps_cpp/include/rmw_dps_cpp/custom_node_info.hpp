@@ -18,6 +18,8 @@
 #include <dps/discovery.h>
 #include <dps/dps.h>
 #include <algorithm>
+#include <iterator>
+#include <iostream>
 #include <map>
 #include <mutex>
 #include <set>
@@ -28,6 +30,8 @@
 #include "rmw/rmw.h"
 
 #include "rmw_dps_cpp/CborStream.hpp"
+#include "rmw_dps_cpp/custom_publisher_info.hpp"
+#include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
 #include "rmw_dps_cpp/namespace_prefix.hpp"
 
@@ -42,6 +46,10 @@ typedef struct CustomNodeInfo
   std::vector<std::string> discovery_payload_;
   DPS_DiscoveryService * discovery_svc_;
   NodeListener * listener_;
+  std::mutex publishers_mutex_;
+  std::map<std::string, std::set<CustomPublisherInfo *>> publishers_;
+  std::mutex subscribers_mutex_;
+  std::map<std::string, std::set<CustomSubscriberInfo *>> subscribers_;
 } CustomNodeInfo;
 
 rmw_ret_t _add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & topics);
@@ -110,11 +118,9 @@ public:
   onDiscovery(const DPS_Publication * pub, uint8_t * payload, size_t len)
   {
     auto impl = static_cast<CustomNodeInfo *>(node_->data);
-    std::lock_guard<std::mutex> lock(mutex_);
-    bool trigger;
+    Node node;
     std::string uuid = DPS_UUIDToString(DPS_PublicationGetUUID(pub));
     if (payload && len) {
-      Node node;
       rmw_dps_cpp::cbor::RxStream deser(payload, len);
       std::vector<std::string> topics;
       deser >> topics;
@@ -144,12 +150,68 @@ public:
           continue;
         }
       }
-      Node old_node = discovered_nodes_[uuid];
-      discovered_nodes_[uuid] = node;
-      trigger = !(old_node == node);
-    } else {
-      trigger = discovered_nodes_.erase(uuid);
     }
+    Node old;
+    bool trigger;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      auto it = discovered_nodes_.find(uuid);
+      if (it != discovered_nodes_.end()) {
+        old = it->second;
+      }
+      if (payload && len) {
+        if (it == discovered_nodes_.end()) {
+          discovered_nodes_.insert(std::make_pair(uuid, node));
+          trigger = true;
+        } else if (it->second == node) {
+          trigger = false;
+        } else {
+          discovered_nodes_.insert(it, std::make_pair(uuid, node));
+          trigger = true;
+        }
+      } else {
+        trigger = discovered_nodes_.erase(uuid);
+      }
+    }
+    // Update cached subscriber counts
+    if (old.subscribers != node.subscribers) {
+      std::vector<std::string> added, removed;
+      topic_difference(old.subscribers, node.subscribers, added, removed);
+
+      std::lock_guard<std::mutex> lock(impl->publishers_mutex_);
+      for (auto topic : removed) {
+        for (auto pub : impl->publishers_[topic]) {
+          pub->subscriptions_.erase(uuid);
+          pub->subscriptions_matched_count_.store(pub->subscriptions_.size());
+        }
+      }
+      for (auto topic : added) {
+        for (auto pub : impl->publishers_[topic]) {
+          pub->subscriptions_.insert(uuid);
+          pub->subscriptions_matched_count_.store(pub->subscriptions_.size());
+        }
+      }
+    }
+    // Update cached publisher counts
+    if (old.publishers != node.publishers) {
+      std::vector<std::string> added, removed;
+      topic_difference(old.publishers, node.publishers, added, removed);
+
+      std::lock_guard<std::mutex> lock(impl->subscribers_mutex_);
+      for (auto topic : removed) {
+        for (auto sub : impl->subscribers_[topic]) {
+          sub->publishers_.erase(uuid);
+          sub->publishers_matched_count_.store(sub->publishers_.size());
+        }
+      }
+      for (auto topic : added) {
+        for (auto sub : impl->subscribers_[topic]) {
+          sub->publishers_.insert(uuid);
+          sub->publishers_matched_count_.store(sub->publishers_.size());
+        }
+      }
+    }
+    // Notify listener
     if (trigger) {
       if (RMW_RET_OK != rmw_trigger_guard_condition(impl->graph_guard_condition_)) {
         RCUTILS_LOG_ERROR_NAMED(
@@ -332,6 +394,22 @@ private:
       return true;
     }
     return false;
+  }
+
+  void
+  topic_difference(const std::vector<Topic> & old_topics, const std::vector<Topic> & new_topics,
+      std::vector<std::string> & added, std::vector<std::string> & removed)
+  {
+    std::set<std::string> old_names, new_names;
+    std::transform(old_topics.begin(), old_topics.end(), std::inserter(old_names, old_names.begin()),
+        [](const Topic & t) -> std::string { return t.topic; });
+    std::transform(new_topics.begin(), new_topics.end(), std::inserter(new_names, new_names.begin()),
+        [](const Topic & t) -> std::string { return t.topic; });
+
+    std::set_difference(old_names.begin(), old_names.end(), new_names.begin(), new_names.end(),
+        std::back_inserter(removed));
+    std::set_difference(new_names.begin(), new_names.end(), old_names.begin(), old_names.end(),
+        std::back_inserter(added));
   }
 
   mutable std::mutex mutex_;
