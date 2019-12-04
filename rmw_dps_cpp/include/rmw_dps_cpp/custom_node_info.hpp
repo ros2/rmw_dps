@@ -69,7 +69,8 @@ public:
   {
     std::string topic;
     std::vector<std::string> types;
-    Topic(const std::string & topic) : topic(topic) { }
+    explicit Topic(const std::string & topic)
+    : topic(topic) {}
     bool operator==(const Topic & that) const
     {
       return this->topic == that.topic &&
@@ -368,7 +369,9 @@ public:
 
 private:
   bool
-  process_topic_info(const std::string & topic_str, const char * prefix, std::vector<Topic> & topics)
+  process_topic_info(
+    const std::string & topic_str, const char * prefix,
+    std::vector<Topic> & topics)
   {
     size_t pos = topic_str.find(prefix);
     if (pos != std::string::npos) {
@@ -397,19 +400,22 @@ private:
   }
 
   void
-  topic_difference(const std::vector<Topic> & old_topics, const std::vector<Topic> & new_topics,
-      std::vector<std::string> & added, std::vector<std::string> & removed)
+  topic_difference(
+    const std::vector<Topic> & old_topics, const std::vector<Topic> & new_topics,
+    std::vector<std::string> & added, std::vector<std::string> & removed)
   {
     std::set<std::string> old_names, new_names;
-    std::transform(old_topics.begin(), old_topics.end(), std::inserter(old_names, old_names.begin()),
-        [](const Topic & t) -> std::string { return t.topic; });
-    std::transform(new_topics.begin(), new_topics.end(), std::inserter(new_names, new_names.begin()),
-        [](const Topic & t) -> std::string { return t.topic; });
+    std::transform(old_topics.begin(), old_topics.end(),
+      std::inserter(old_names, old_names.begin()),
+      [](const Topic & t) -> std::string {return t.topic;});
+    std::transform(new_topics.begin(), new_topics.end(),
+      std::inserter(new_names, new_names.begin()),
+      [](const Topic & t) -> std::string {return t.topic;});
 
     std::set_difference(old_names.begin(), old_names.end(), new_names.begin(), new_names.end(),
-        std::back_inserter(removed));
+      std::back_inserter(removed));
     std::set_difference(new_names.begin(), new_names.end(), old_names.begin(), old_names.end(),
-        std::back_inserter(added));
+      std::back_inserter(added));
   }
 
   mutable std::mutex mutex_;
