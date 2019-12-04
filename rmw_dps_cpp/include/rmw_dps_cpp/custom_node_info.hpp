@@ -61,6 +61,7 @@ public:
   {
     std::string topic;
     std::vector<std::string> types;
+    Topic(const std::string & topic) : topic(topic) { }
     bool operator==(const Topic & that) const
     {
       return this->topic == that.topic &&
@@ -102,8 +103,14 @@ public:
 
     NodeListener * listener =
       reinterpret_cast<NodeListener *>(DPS_GetDiscoveryServiceData(service));
-    auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
-    std::lock_guard<std::mutex> lock(listener->mutex_);
+    return listener->onDiscovery(pub, payload, len);
+  }
+
+  void
+  onDiscovery(const DPS_Publication * pub, uint8_t * payload, size_t len)
+  {
+    auto impl = static_cast<CustomNodeInfo *>(node_->data);
+    std::lock_guard<std::mutex> lock(mutex_);
     bool trigger;
     std::string uuid = DPS_UUIDToString(DPS_PublicationGetUUID(pub));
     if (payload && len) {
@@ -112,7 +119,7 @@ public:
       std::vector<std::string> topics;
       deser >> topics;
       for (size_t i = 0; i < topics.size(); ++i) {
-        std::string topic = topics[i];
+        const std::string & topic = topics[i];
         size_t pos;
         pos = topic.find(dps_namespace_prefix);
         if (pos != std::string::npos) {
@@ -124,32 +131,24 @@ public:
           node.name = topic.substr(pos + strlen(dps_name_prefix));
           continue;
         }
-        Topic subscriber;
-        if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
-          node.subscribers.push_back(subscriber);
+        if (process_topic_info(topic, dps_subscriber_prefix, node.subscribers)) {
           continue;
         }
-        Topic publisher;
-        if (process_topic_info(topic, dps_publisher_prefix, publisher)) {
-          node.publishers.push_back(publisher);
+        if (process_topic_info(topic, dps_publisher_prefix, node.publishers)) {
           continue;
         }
-        Topic service;
-        if (process_topic_info(topic, dps_service_prefix, service)) {
-          node.services.push_back(service);
+        if (process_topic_info(topic, dps_service_prefix, node.services)) {
           continue;
         }
-        Topic client;
-        if (process_topic_info(topic, dps_client_prefix, client)) {
-          node.clients.push_back(client);
+        if (process_topic_info(topic, dps_client_prefix, node.clients)) {
           continue;
         }
       }
-      Node old_node = listener->discovered_nodes_[uuid];
-      listener->discovered_nodes_[uuid] = node;
+      Node old_node = discovered_nodes_[uuid];
+      discovered_nodes_[uuid] = node;
       trigger = !(old_node == node);
     } else {
-      trigger = listener->discovered_nodes_.erase(uuid);
+      trigger = discovered_nodes_.erase(uuid);
     }
     if (trigger) {
       if (RMW_RET_OK != rmw_trigger_guard_condition(impl->graph_guard_condition_)) {
@@ -306,26 +305,27 @@ public:
   }
 
 private:
-  static bool
-  process_topic_info(const std::string & topic_str, const char * prefix, Topic & topic)
+  bool
+  process_topic_info(const std::string & topic_str, const char * prefix, std::vector<Topic> & topics)
   {
     size_t pos = topic_str.find(prefix);
     if (pos != std::string::npos) {
       pos = pos + strlen(prefix);
       size_t end_pos = topic_str.find("&types=");
       if (end_pos != std::string::npos) {
-        topic.topic = topic_str.substr(pos, end_pos - pos);
+        topics.emplace_back(topic_str.substr(pos, end_pos - pos));
         pos = end_pos + strlen("&types=");
       } else {
-        topic.topic = topic_str.substr(pos);
+        topics.emplace_back(topic_str.substr(pos));
       }
+      Topic & topic = topics.back();
       while (pos != std::string::npos) {
         end_pos = topic_str.find(",", pos);
         if (end_pos != std::string::npos) {
-          topic.types.push_back(topic_str.substr(pos, end_pos - pos));
+          topic.types.emplace_back(topic_str.substr(pos, end_pos - pos));
           pos = end_pos + 1;
         } else {
-          topic.types.push_back(topic_str.substr(pos));
+          topic.types.emplace_back(topic_str.substr(pos));
           pos = end_pos;
         }
       }

@@ -238,7 +238,6 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
     return RMW_RET_ERROR;
   }
 
-  rmw_dps_cpp::cbor::TxStream ser;
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
   if (info) {
     _remove_discovery_topic(impl, info->discovery_name_);

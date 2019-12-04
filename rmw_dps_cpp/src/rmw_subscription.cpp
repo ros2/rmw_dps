@@ -243,7 +243,6 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     return RMW_RET_ERROR;
   }
 
-  rmw_dps_cpp::cbor::TxStream ser;
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
   if (info) {
     _remove_discovery_topic(impl, info->discovery_name_);
