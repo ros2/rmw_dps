@@ -38,10 +38,10 @@ typedef struct CustomNodeInfo
   DPS_Node * node_;
   rmw_guard_condition_t * graph_guard_condition_;
   size_t domain_id_;
+  std::mutex discovery_mutex_;
   std::vector<std::string> discovery_payload_;
   DPS_DiscoveryService * discovery_svc_;
   NodeListener * listener_;
-  std::mutex mutex_;
 } CustomNodeInfo;
 
 rmw_ret_t _add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & topics);
