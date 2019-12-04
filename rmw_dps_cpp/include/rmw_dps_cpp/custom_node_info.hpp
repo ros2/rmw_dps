@@ -78,12 +78,12 @@ public:
     std::vector<Topic> clients;
     bool operator==(const Node & that) const
     {
-      return this->name == that.name &&
-             this->namespace_ == that.namespace_ &&
-             this->subscribers == that.subscribers &&
-             this->publishers == that.publishers &&
+      return this->clients == that.clients &&
              this->services == that.services &&
-             this->clients == that.clients;
+             this->publishers == that.publishers &&
+             this->subscribers == that.subscribers &&
+             this->name == that.name &&
+             this->namespace_ == that.namespace_;
     }
   };
 
