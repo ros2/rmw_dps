@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2018 Intel Corporation All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@
 #include <condition_variable>
 #include <mutex>
 #include <utility>
+
+#include "rcpputils/thread_safety_annotations.hpp"
 
 class GuardCondition
 {
@@ -72,16 +74,14 @@ public:
   bool
   getHasTriggered()
   {
-    bool ret = hasTriggered_;
-    hasTriggered_ = false;
-    return ret;
+    return hasTriggered_.exchange(false);
   }
 
 private:
   std::mutex internalMutex_;
   std::atomic_bool hasTriggered_;
-  std::mutex * conditionMutex_;
-  std::condition_variable * conditionVariable_;
+  std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+  std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
 };
 
 #endif  // TYPES__GUARD_CONDITION_HPP_

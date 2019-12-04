@@ -76,6 +76,10 @@ rmw_publish_serialized_message(
   const rmw_serialized_message_t * serialized_message,
   rmw_publisher_allocation_t * allocation)
 {
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s()", __FUNCTION__);
+
   (void)allocation;
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(

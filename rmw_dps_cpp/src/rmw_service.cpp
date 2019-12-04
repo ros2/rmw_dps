@@ -117,13 +117,13 @@ rmw_create_service(
     _register_type(impl->node_, info->response_type_support_, info->typesupport_identifier_);
   }
 
-  info->request_listener_ = new Listener;
+  info->listener_ = new Listener;
   info->request_subscription_ = DPS_CreateSubscription(impl->node_, &topic, 1);
   if (!info->request_subscription_) {
     RMW_SET_ERROR_MSG("failed to create subscription");
     goto fail;
   }
-  ret = DPS_SetSubscriptionData(info->request_subscription_, info->request_listener_);
+  ret = DPS_SetSubscriptionData(info->request_subscription_, info->listener_);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to set subscription data");
     goto fail;

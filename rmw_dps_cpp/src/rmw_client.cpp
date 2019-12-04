@@ -125,8 +125,8 @@ rmw_create_client(
     RMW_SET_ERROR_MSG("failed to create publication");
     goto fail;
   }
-  info->response_listener_ = new Listener;
-  status = DPS_SetPublicationData(info->request_publication_, info->response_listener_);
+  info->listener_ = new Listener;
+  status = DPS_SetPublicationData(info->request_publication_, info->listener_);
   if (status != DPS_OK) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to set subscription data - %s",
       DPS_ErrTxt(status));

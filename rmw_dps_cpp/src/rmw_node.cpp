@@ -51,7 +51,7 @@ _publish_discovery_payload(CustomNodeInfo * impl)
 rmw_ret_t
 _add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & topics)
 {
-  std::lock_guard<std::mutex> lock(impl->mutex_);
+  std::lock_guard<std::mutex> lock(impl->discovery_mutex_);
   impl->discovery_payload_.insert(impl->discovery_payload_.end(),
     topics.begin(), topics.end());
   return _publish_discovery_payload(impl);
@@ -60,7 +60,7 @@ _add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & to
 rmw_ret_t
 _add_discovery_topic(CustomNodeInfo * impl, const std::string & topic)
 {
-  std::lock_guard<std::mutex> lock(impl->mutex_);
+  std::lock_guard<std::mutex> lock(impl->discovery_mutex_);
   impl->discovery_payload_.push_back(topic);
   return _publish_discovery_payload(impl);
 }
@@ -68,7 +68,7 @@ _add_discovery_topic(CustomNodeInfo * impl, const std::string & topic)
 rmw_ret_t
 _remove_discovery_topic(CustomNodeInfo * impl, const std::string & topic)
 {
-  std::lock_guard<std::mutex> lock(impl->mutex_);
+  std::lock_guard<std::mutex> lock(impl->discovery_mutex_);
   auto it = std::find_if(impl->discovery_payload_.begin(), impl->discovery_payload_.end(),
       [&](const std::string & str) {return str == topic;});
   if (it != impl->discovery_payload_.end()) {

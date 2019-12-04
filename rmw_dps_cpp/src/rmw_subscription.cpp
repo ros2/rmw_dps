@@ -174,6 +174,10 @@ rmw_create_subscription(
     goto fail;
   }
 
+  {
+    std::lock_guard<std::mutex> lock(impl->subscribers_mutex_);
+    impl->subscribers_[topic_name].insert(info);
+  }
   return rmw_subscription;
 
 fail:
@@ -208,8 +212,9 @@ rmw_subscription_count_matched_publishers(
     (void *)subscription, (void *)publisher_count);
 
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
-  auto impl = static_cast<CustomNodeInfo *>(info->node_->data);
-  *publisher_count = impl->listener_->count_publishers(subscription->topic_name);
+  if (info != nullptr) {
+    *publisher_count = info->publishers_matched_count_.load();
+  }
   return RMW_RET_OK;
 }
 
@@ -243,9 +248,12 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     return RMW_RET_ERROR;
   }
 
-  rmw_dps_cpp::cbor::TxStream ser;
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
   if (info) {
+    if (subscription->topic_name) {
+      std::lock_guard<std::mutex> lock(impl->subscribers_mutex_);
+      impl->subscribers_[subscription->topic_name].erase(info);
+    }
     _remove_discovery_topic(impl, info->discovery_name_);
     if (info->subscription_) {
       DPS_DestroySubscription(info->subscription_, [](DPS_Subscription * sub) {

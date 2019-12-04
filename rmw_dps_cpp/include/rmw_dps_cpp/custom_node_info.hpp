@@ -18,6 +18,8 @@
 #include <dps/discovery.h>
 #include <dps/dps.h>
 #include <algorithm>
+#include <iterator>
+#include <iostream>
 #include <map>
 #include <mutex>
 #include <set>
@@ -28,6 +30,8 @@
 #include "rmw/rmw.h"
 
 #include "rmw_dps_cpp/CborStream.hpp"
+#include "rmw_dps_cpp/custom_publisher_info.hpp"
+#include "rmw_dps_cpp/custom_subscriber_info.hpp"
 #include "rmw_dps_cpp/names_common.hpp"
 #include "rmw_dps_cpp/namespace_prefix.hpp"
 
@@ -38,10 +42,14 @@ typedef struct CustomNodeInfo
   DPS_Node * node_;
   rmw_guard_condition_t * graph_guard_condition_;
   size_t domain_id_;
+  std::mutex discovery_mutex_;
   std::vector<std::string> discovery_payload_;
   DPS_DiscoveryService * discovery_svc_;
   NodeListener * listener_;
-  std::mutex mutex_;
+  std::mutex publishers_mutex_;
+  std::map<std::string, std::set<CustomPublisherInfo *>> publishers_;
+  std::mutex subscribers_mutex_;
+  std::map<std::string, std::set<CustomSubscriberInfo *>> subscribers_;
 } CustomNodeInfo;
 
 rmw_ret_t _add_discovery_topics(CustomNodeInfo * impl, const std::vector<std::string> & topics);
@@ -61,6 +69,8 @@ public:
   {
     std::string topic;
     std::vector<std::string> types;
+    explicit Topic(const std::string & topic)
+    : topic(topic) {}
     bool operator==(const Topic & that) const
     {
       return this->topic == that.topic &&
@@ -77,12 +87,12 @@ public:
     std::vector<Topic> clients;
     bool operator==(const Node & that) const
     {
-      return this->name == that.name &&
-             this->namespace_ == that.namespace_ &&
-             this->subscribers == that.subscribers &&
-             this->publishers == that.publishers &&
+      return this->clients == that.clients &&
              this->services == that.services &&
-             this->clients == that.clients;
+             this->publishers == that.publishers &&
+             this->subscribers == that.subscribers &&
+             this->name == that.name &&
+             this->namespace_ == that.namespace_;
     }
   };
 
@@ -102,17 +112,21 @@ public:
 
     NodeListener * listener =
       reinterpret_cast<NodeListener *>(DPS_GetDiscoveryServiceData(service));
-    auto impl = static_cast<CustomNodeInfo *>(listener->node_->data);
-    std::lock_guard<std::mutex> lock(listener->mutex_);
-    bool trigger;
+    return listener->onDiscovery(pub, payload, len);
+  }
+
+  void
+  onDiscovery(const DPS_Publication * pub, uint8_t * payload, size_t len)
+  {
+    auto impl = static_cast<CustomNodeInfo *>(node_->data);
+    Node node;
     std::string uuid = DPS_UUIDToString(DPS_PublicationGetUUID(pub));
     if (payload && len) {
-      Node node;
       rmw_dps_cpp::cbor::RxStream deser(payload, len);
       std::vector<std::string> topics;
       deser >> topics;
       for (size_t i = 0; i < topics.size(); ++i) {
-        std::string topic = topics[i];
+        const std::string & topic = topics[i];
         size_t pos;
         pos = topic.find(dps_namespace_prefix);
         if (pos != std::string::npos) {
@@ -124,33 +138,81 @@ public:
           node.name = topic.substr(pos + strlen(dps_name_prefix));
           continue;
         }
-        Topic subscriber;
-        if (process_topic_info(topic, dps_subscriber_prefix, subscriber)) {
-          node.subscribers.push_back(subscriber);
+        if (process_topic_info(topic, dps_subscriber_prefix, node.subscribers)) {
           continue;
         }
-        Topic publisher;
-        if (process_topic_info(topic, dps_publisher_prefix, publisher)) {
-          node.publishers.push_back(publisher);
+        if (process_topic_info(topic, dps_publisher_prefix, node.publishers)) {
           continue;
         }
-        Topic service;
-        if (process_topic_info(topic, dps_service_prefix, service)) {
-          node.services.push_back(service);
+        if (process_topic_info(topic, dps_service_prefix, node.services)) {
           continue;
         }
-        Topic client;
-        if (process_topic_info(topic, dps_client_prefix, client)) {
-          node.clients.push_back(client);
+        if (process_topic_info(topic, dps_client_prefix, node.clients)) {
           continue;
         }
       }
-      Node old_node = listener->discovered_nodes_[uuid];
-      listener->discovered_nodes_[uuid] = node;
-      trigger = !(old_node == node);
-    } else {
-      trigger = listener->discovered_nodes_.erase(uuid);
     }
+    Node old;
+    bool trigger;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      auto it = discovered_nodes_.find(uuid);
+      if (it != discovered_nodes_.end()) {
+        old = it->second;
+      }
+      if (payload && len) {
+        if (it == discovered_nodes_.end()) {
+          discovered_nodes_.insert(std::make_pair(uuid, node));
+          trigger = true;
+        } else if (it->second == node) {
+          trigger = false;
+        } else {
+          discovered_nodes_.insert(it, std::make_pair(uuid, node));
+          trigger = true;
+        }
+      } else {
+        trigger = discovered_nodes_.erase(uuid);
+      }
+    }
+    // Update cached subscriber counts
+    if (old.subscribers != node.subscribers) {
+      std::vector<std::string> added, removed;
+      topic_difference(old.subscribers, node.subscribers, added, removed);
+
+      std::lock_guard<std::mutex> lock(impl->publishers_mutex_);
+      for (auto topic : removed) {
+        for (auto pub : impl->publishers_[topic]) {
+          pub->subscriptions_.erase(uuid);
+          pub->subscriptions_matched_count_.store(pub->subscriptions_.size());
+        }
+      }
+      for (auto topic : added) {
+        for (auto pub : impl->publishers_[topic]) {
+          pub->subscriptions_.insert(uuid);
+          pub->subscriptions_matched_count_.store(pub->subscriptions_.size());
+        }
+      }
+    }
+    // Update cached publisher counts
+    if (old.publishers != node.publishers) {
+      std::vector<std::string> added, removed;
+      topic_difference(old.publishers, node.publishers, added, removed);
+
+      std::lock_guard<std::mutex> lock(impl->subscribers_mutex_);
+      for (auto topic : removed) {
+        for (auto sub : impl->subscribers_[topic]) {
+          sub->publishers_.erase(uuid);
+          sub->publishers_matched_count_.store(sub->publishers_.size());
+        }
+      }
+      for (auto topic : added) {
+        for (auto sub : impl->subscribers_[topic]) {
+          sub->publishers_.insert(uuid);
+          sub->publishers_matched_count_.store(sub->publishers_.size());
+        }
+      }
+    }
+    // Notify listener
     if (trigger) {
       if (RMW_RET_OK != rmw_trigger_guard_condition(impl->graph_guard_condition_)) {
         RCUTILS_LOG_ERROR_NAMED(
@@ -306,32 +368,54 @@ public:
   }
 
 private:
-  static bool
-  process_topic_info(const std::string & topic_str, const char * prefix, Topic & topic)
+  bool
+  process_topic_info(
+    const std::string & topic_str, const char * prefix,
+    std::vector<Topic> & topics)
   {
     size_t pos = topic_str.find(prefix);
     if (pos != std::string::npos) {
       pos = pos + strlen(prefix);
       size_t end_pos = topic_str.find("&types=");
       if (end_pos != std::string::npos) {
-        topic.topic = topic_str.substr(pos, end_pos - pos);
+        topics.emplace_back(topic_str.substr(pos, end_pos - pos));
         pos = end_pos + strlen("&types=");
       } else {
-        topic.topic = topic_str.substr(pos);
+        topics.emplace_back(topic_str.substr(pos));
       }
+      Topic & topic = topics.back();
       while (pos != std::string::npos) {
         end_pos = topic_str.find(",", pos);
         if (end_pos != std::string::npos) {
-          topic.types.push_back(topic_str.substr(pos, end_pos - pos));
+          topic.types.emplace_back(topic_str.substr(pos, end_pos - pos));
           pos = end_pos + 1;
         } else {
-          topic.types.push_back(topic_str.substr(pos));
+          topic.types.emplace_back(topic_str.substr(pos));
           pos = end_pos;
         }
       }
       return true;
     }
     return false;
+  }
+
+  void
+  topic_difference(
+    const std::vector<Topic> & old_topics, const std::vector<Topic> & new_topics,
+    std::vector<std::string> & added, std::vector<std::string> & removed)
+  {
+    std::set<std::string> old_names, new_names;
+    std::transform(old_topics.begin(), old_topics.end(),
+      std::inserter(old_names, old_names.begin()),
+      [](const Topic & t) -> std::string {return t.topic;});
+    std::transform(new_topics.begin(), new_topics.end(),
+      std::inserter(new_names, new_names.begin()),
+      [](const Topic & t) -> std::string {return t.topic;});
+
+    std::set_difference(old_names.begin(), old_names.end(), new_names.begin(), new_names.end(),
+      std::back_inserter(removed));
+    std::set_difference(new_names.begin(), new_names.end(), old_names.begin(), old_names.end(),
+      std::back_inserter(added));
   }
 
   mutable std::mutex mutex_;

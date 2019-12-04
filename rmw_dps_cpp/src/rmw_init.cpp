@@ -109,6 +109,10 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
 rmw_ret_t
 rmw_shutdown(rmw_context_t * context)
 {
+  RCUTILS_LOG_DEBUG_NAMED(
+    "rmw_dps_cpp",
+    "%s()", __FUNCTION__);
+
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     context,
