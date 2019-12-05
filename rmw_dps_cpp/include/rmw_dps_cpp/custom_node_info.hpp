@@ -167,7 +167,7 @@ public:
         } else if (it->second == node) {
           trigger = false;
         } else {
-          discovered_nodes_.insert(it, std::make_pair(uuid, node));
+          it->second = node;
           trigger = true;
         }
       } else {
