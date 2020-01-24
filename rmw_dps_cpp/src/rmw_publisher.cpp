@@ -143,7 +143,7 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("failed to create publication");
     goto fail;
   }
-  ret = DPS_InitPublication(info->publication_, &topic, 1, DPS_FALSE, nullptr, nullptr);
+  ret = DPS_InitPublication(info->publication_, &topic, 1, DPS_FALSE, nullptr);
   if (ret != DPS_OK) {
     RMW_SET_ERROR_MSG("failed to initialize publication");
     goto fail;
