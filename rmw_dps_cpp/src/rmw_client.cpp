@@ -132,7 +132,7 @@ rmw_create_client(
       DPS_ErrTxt(status));
     goto fail;
   }
-  status = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_FALSE,
+  status = DPS_InitPublication(info->request_publication_, &topic, 1, DPS_TRUE,
       Listener::onAcknowledgement);
   if (status != DPS_OK) {
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to initialize publication - %s",
