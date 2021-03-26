@@ -31,7 +31,7 @@ extern "C"
 rmw_ret_t
 rmw_take_response(
   const rmw_client_t * client,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_response,
   bool * taken)
 {
@@ -63,12 +63,12 @@ rmw_take_response(
       info->typesupport_identifier_);
 
     // Get header
-    memset(request_header->writer_guid, 0, sizeof(request_header->writer_guid));
+    memset(request_header->request_id.writer_guid, 0, sizeof(request_header->request_id.writer_guid));
     const DPS_UUID * uuid = DPS_PublicationGetUUID(pub.get());
     if (uuid) {
-      memcpy(request_header->writer_guid, uuid, sizeof(DPS_UUID));
+      memcpy(request_header->request_id.writer_guid, uuid, sizeof(DPS_UUID));
     }
-    request_header->sequence_number = DPS_AckGetSequenceNum(pub.get());
+    request_header->request_id.sequence_number = DPS_AckGetSequenceNum(pub.get());
 
     *taken = true;
   }

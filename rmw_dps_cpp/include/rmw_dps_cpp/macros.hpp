@@ -22,14 +22,14 @@
   template<> \
   struct GenericCSequence<C_TYPE> \
   { \
-    using type = rosidl_generator_c__ ## C_NAME ## __Sequence; \
+    using type = rosidl_runtime_c__ ## C_NAME ## __Sequence; \
  \
     static void fini(type * sequence) { \
-      rosidl_generator_c__ ## C_NAME ## __Sequence__fini(sequence); \
+      rosidl_runtime_c__ ## C_NAME ## __Sequence__fini(sequence); \
     } \
  \
     static bool init(type * sequence, size_t size) { \
-      return rosidl_generator_c__ ## C_NAME ## __Sequence__init(sequence, size); \
+      return rosidl_runtime_c__ ## C_NAME ## __Sequence__init(sequence, size); \
     } \
   };
 
