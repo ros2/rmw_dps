@@ -15,10 +15,8 @@
 #ifndef RMW_DPS_CPP__TYPESUPPORT_HPP_
 #define RMW_DPS_CPP__TYPESUPPORT_HPP_
 
-#include <rosidl_generator_c/string.h>
-#include <rosidl_generator_c/string_functions.h>
-#include <rosidl_generator_c/u16string.h>
-#include <rosidl_generator_c/u16string_functions.h>
+#include "rosidl_runtime_c/string_functions.h"
+#include "rosidl_runtime_c/u16string_functions.h"
 
 #include <cassert>
 #include <string>
@@ -50,27 +48,27 @@ struct StringHelper;
 template<>
 struct StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
 {
-  using type = rosidl_generator_c__String;
+  using type = rosidl_runtime_c__String;
 
   static std::string convert_to_std_string(void * data)
   {
-    auto c_string = static_cast<rosidl_generator_c__String *>(data);
+    auto c_string = static_cast<rosidl_runtime_c__String *>(data);
     if (!c_string) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_dps_cpp",
-        "Failed to cast data as rosidl_generator_c__String");
+        "Failed to cast data as rosidl_runtime_c__String");
       return "";
     }
     if (!c_string->data) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_dps_cpp",
-        "rosidl_generator_c_String had invalid data");
+        "rosidl_runtime_c_String had invalid data");
       return "";
     }
     return std::string(c_string->data);
   }
 
-  static std::string convert_to_std_string(rosidl_generator_c__String & data)
+  static std::string convert_to_std_string(rosidl_runtime_c__String & data)
   {
     return std::string(data.data);
   }
@@ -79,8 +77,8 @@ struct StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
   {
     std::string str;
     deser >> str;
-    rosidl_generator_c__String * c_str = static_cast<rosidl_generator_c__String *>(field);
-    rosidl_generator_c__String__assign(c_str, str.c_str());
+    rosidl_runtime_c__String * c_str = static_cast<rosidl_runtime_c__String *>(field);
+    rosidl_runtime_c__String__assign(c_str, str.c_str());
   }
 };
 
@@ -113,27 +111,27 @@ struct U16StringHelper;
 template<>
 struct U16StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
 {
-  using type = rosidl_generator_c__U16String;
+  using type = rosidl_runtime_c__U16String;
 
   static std::u16string convert_to_std_u16string(void * data)
   {
-    auto c_u16string = static_cast<rosidl_generator_c__U16String *>(data);
+    auto c_u16string = static_cast<rosidl_runtime_c__U16String *>(data);
     if (!c_u16string) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_dps_cpp",
-        "Failed to cast data as rosidl_generator_c__U16String");
+        "Failed to cast data as rosidl_runtime_c__U16String");
       return u"";
     }
     if (!c_u16string->data) {
       RCUTILS_LOG_ERROR_NAMED(
         "rmw_dps_cpp",
-        "rosidl_generator_c_U16String had invalid data");
+        "rosidl_runtime_c_U16String had invalid data");
       return u"";
     }
     return std::u16string(reinterpret_cast<char16_t *>(c_u16string->data));
   }
 
-  static std::u16string convert_to_std_u16string(rosidl_generator_c__U16String & data)
+  static std::u16string convert_to_std_u16string(rosidl_runtime_c__U16String & data)
   {
     return std::u16string(reinterpret_cast<char16_t *>(data.data));
   }
@@ -142,8 +140,8 @@ struct U16StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
   {
     std::u16string str;
     deser >> str;
-    rosidl_generator_c__U16String * c_str = static_cast<rosidl_generator_c__U16String *>(field);
-    rosidl_generator_c__U16String__assign(c_str, reinterpret_cast<const uint16_t *>(str.c_str()));
+    rosidl_runtime_c__U16String * c_str = static_cast<rosidl_runtime_c__U16String *>(field);
+    rosidl_runtime_c__U16String__assign(c_str, reinterpret_cast<const uint16_t *>(str.c_str()));
   }
 };
 

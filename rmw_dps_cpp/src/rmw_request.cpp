@@ -76,7 +76,7 @@ rmw_send_request(
 rmw_ret_t
 rmw_take_request(
   const rmw_service_t * service,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_request,
   bool * taken)
 {
@@ -108,16 +108,16 @@ rmw_take_request(
       info->typesupport_identifier_);
 
     // Get header
-    memset(request_header->writer_guid, 0, sizeof(request_header->writer_guid));
+    memset(request_header->request_id.writer_guid, 0, sizeof(request_header->request_id.writer_guid));
     const DPS_UUID * uuid = DPS_PublicationGetUUID(pub.get());
     if (uuid) {
-      memcpy(request_header->writer_guid, uuid, sizeof(DPS_UUID));
+      memcpy(request_header->request_id.writer_guid, uuid, sizeof(DPS_UUID));
     }
-    request_header->sequence_number = DPS_PublicationGetSequenceNum(pub.get());
-
+    request_header->request_id.sequence_number = DPS_PublicationGetSequenceNum(pub.get());
+    
     *taken = true;
 
-    info->requests_.emplace(std::make_pair(*request_header, std::move(pub)));
+    info->requests_.emplace(std::make_pair(request_header->request_id, std::move(pub)));
   }
 
   return RMW_RET_OK;
